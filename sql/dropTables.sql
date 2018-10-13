@@ -1,0 +1,16 @@
+DROP TABLE customer;
+DROP TABLE employee;
+DROP TABLE car;
+DROP TABLE service_center;
+DROP TABLE inventory;
+DROP TABLE distributor;
+DROP TABLE order;
+DROP TABLE appointment;
+DROP TABLE invoice;
+DROP TABLE payroll;
+DROP TABLE hourly_payroll;
+DROP TABLE monthly_payroll;
+DROP TABLE timeslot;
+DROP TABLE service;
+DROP TABLE maintenance_service;
+DROP TABLE repair_service;
