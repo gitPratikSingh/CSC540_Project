@@ -14,14 +14,14 @@ public class DBBuilder {
 		"appointment",
 		"invoice",
 		"employee",
-		"mechanic",
 		"payroll",
 		"hourly_payroll",
 		"monthly_payroll",
 		"timeslot",
 		"service",
 		"maintenance_service",
-		"repair_service"};
+		"repair_service", 
+		"distributor"};
 	
 	private static Connection connection = null;
 	
