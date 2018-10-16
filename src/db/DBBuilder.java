@@ -30,7 +30,7 @@ public class DBBuilder {
 			try {
 	            Class.forName("oracle.jdbc.driver.OracleDriver");
 	            connection = DriverManager.getConnection(
-	                    "jdbc:oracle:thin:@localhost:1521/orcl", "hr", "hr");
+	                    "jdbc:oracle:thin:@orca.csc.ncsu.edu:1521:orcl01", "psingh22", "200200390");
 	        } catch (ClassNotFoundException | SQLException e) {
 	            System.out.println("Connection failed");
 	            e.printStackTrace();
@@ -135,9 +135,9 @@ public class DBBuilder {
         if (connection != null) {
             System.out.println("Connected...");
             
-            dropTables();
-            createTables();
-            populateTables();
+            //dropTables();
+            //createTables();
+            //populateTables();
             
         } else {
             System.out.println("Connection failed!");
