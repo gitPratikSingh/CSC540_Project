@@ -1,47 +1,45 @@
-CREATE TABLE customer (
-	customer_id​​ INTEGER, 
-	email VARCHAR(50),
-	name VARCHAR(100),
-	address VARCHAR(200),
-	phone VARCHAR(20),
-	PRIMARY KEY (​customer_id​​)
+CREATE TABLE customer
+( customer_id NUMBER(10) NOT NULL PRIMARY KEY,  
+  customer_name VARCHAR(50) NOT NULL,  
+  email VARCHAR(50),
+  phone VARCHAR(20),
+  address VARCHAR(200)
 );
 
-CREATE TABLE employee(
-	employee_id​​ INTEGER,
-	address VARCHAR(20),
-	name VARCHAR(20), 
-	email_address VARCHAR(20), 
-	phone_number VARCHAR(20), 
-	service_centre_id INTEGER, 
-	role ENUM('MANAGER', 'RECEPTIONIST', 'MECHANIC'),
-	PRIMARY KEY(​employee_id​​)
+CREATE TABLE employee( 
+    employee_id NUMBER(10) NOT NULL PRIMARY KEY,
+    employee_name VARCHAR(50),
+    employee_email VARCHAR(50),
+    employee_phone VARCHAR(50),
+    employee_adress VARCHAR(50),
+    employee_role VARCHAR(20),
+    CONSTRAINT chk_role CHECK (employee_role in ('MANAGER', 'RECEPTIONIST', 'MECHANIC')) ENABLE
 );
 
 CREATE TABLE car
 (
-	customer_id INTEGER, 
-	license_plate_number​​ VARCHAR(50) ,
-	year INTEGER,
-	make VARCHAR(20),
-	model VARCHAR(20),
-	last_service_date VARCHAR(20), 
-	last_service_type VARCHAR(20), 
-	purchase_date TIMESTAMP, 
-	last_recorded_milage INTEGER,
-	PRIMARY KEY (​License_plate_number​​),
-	FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
+    customer_id NUMBER(10) NOT NULL, 
+    license_plate_number VARCHAR(50) ,
+    car_year NUMBER(10),
+    make VARCHAR(20),
+    car_model VARCHAR(20),
+    last_service_date VARCHAR(20), 
+    last_service_type VARCHAR(20), 
+    purchase_date TIMESTAMP, 
+    last_recorded_milage INTEGER,
+    PRIMARY KEY (license_plate_number),
+    FOREIGN KEY (customer_id) REFERENCES customer(customer_id)
 );
 
 CREATE TABLE service_centre
 (
-	service_centre_id​​ INTEGER,
-	name VARCHAR(100),
+	service_centre_id INTEGER,
+	service_centre_name VARCHAR(100),
 	address VARCHAR(200),
 	telephone_number VARCHAR(15),
-	manager_id INTEGER,
-	receptionist_id INTEGER,
-	PRIMARY KEY(​service_centre_id​​),
+	manager_id NUMBER(10),
+	receptionist_id NUMBER(10),
+	PRIMARY KEY(service_centre_id),
 	FOREIGN KEY(manager_id) REFERENCES employee(employee_id), 
 	FOREIGN KEY(receptionist_id) REFERENCES employee(employee_id)
 );

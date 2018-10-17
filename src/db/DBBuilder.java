@@ -7,7 +7,7 @@ public class DBBuilder {
 	
 	private static String[] tables = new String[]{
 		"car",
-		"order",
+		"orders",
 		"customer",
 		"service_center",
 		"inventory",
@@ -17,7 +17,7 @@ public class DBBuilder {
 		"payroll",
 		"hourly_payroll",
 		"monthly_payroll",
-		"timeslot",
+		"timeslots",
 		"service",
 		"maintenance_service",
 		"repair_service", 
@@ -66,17 +66,16 @@ public class DBBuilder {
 	public static void createTables() {
 		getConnection();
 		Statement stmt = null;
-        ResultSet rs = null;
         try {	
 			stmt = connection.createStatement();
-			String sql = readSQL("sql/createTables.sql");
+			String sql =  "call CREATE_ALL_TABLES()";
 	        System.out.println(sql);
 			stmt.executeUpdate(sql);
 		} 
     	catch(Throwable e) {
 	        e.printStackTrace();
 	    }
-        close(rs);
+        
         close(stmt);
         close();
 	}
@@ -85,32 +84,32 @@ public class DBBuilder {
 		Statement stmt = null;
         try {	
 			stmt = connection.createStatement();
-			String sql = "DROP TABLE ";
-			for (String t: tables) {
-				stmt.executeUpdate(sql+t);
-				System.out.println(sql+t);
-			}
+			String sql = "call DROP_ALL_TABLES() ";
+			System.out.println(sql);
+			stmt.executeUpdate(sql);
 		} 
     	catch(Throwable e) {
 	        e.printStackTrace();
 	    }
         close(stmt);
+        close();
 	}
 	
 	public static void populateTables() {
 		Statement stmt = null;
-		
+		getConnection();
 		try {
 			stmt = connection.createStatement();
-			
-			stmt.executeUpdate(". add code here .");
+			String sql = "call POPULATE_ALL_TABLES()";
+			stmt.executeUpdate(sql);
+			System.out.println(sql);
 			
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		close(stmt);
 	}
+	
 	
 	private static String readSQL(String path) {
 		String sql = "";
@@ -135,9 +134,9 @@ public class DBBuilder {
         if (connection != null) {
             System.out.println("Connected...");
             
-            //dropTables();
-            //createTables();
-            //populateTables();
+            dropTables();
+            createTables();
+            populateTables();
             
         } else {
             System.out.println("Connection failed!");
