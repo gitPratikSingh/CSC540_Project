@@ -8,18 +8,18 @@ import db.DBBuilder;
 public class Parts {
 
 	private static int getNextId(){
-		int service_center_id = 0;
+		int part_id = 0;
 		try {
 			Statement stmt = null;
 			stmt = DBBuilder.getConnection().createStatement();
 			ResultSet rs = stmt.executeQuery("select Parts_Seq.nextval from dual");
 			rs.next();
-			service_center_id = rs.getInt(1);
+			part_id = rs.getInt(1);
 		} 
     	catch(Throwable e) {
 	        e.printStackTrace();
 	    }
-		return service_center_id;
+		return part_id;
 		
 	}
 	
@@ -50,7 +50,7 @@ public class Parts {
 
 	}
 	
-public static int delete(int part_id) {
+	public static int delete(int part_id) {
 		
 		Statement stmt = null;
 		String sql =  "DELETE FROM Parts WHERE id = " + part_id;
@@ -76,7 +76,7 @@ public static int delete(int part_id) {
 		
 		String sql =  "Update Parts Set part_name = " +part_name+
 				", unit_price = " +unit_price+
-				"WHERE id = " + part_id;
+				" WHERE id = " + part_id;
 		
 		try {	
 			stmt = DBBuilder.getConnection().createStatement();
