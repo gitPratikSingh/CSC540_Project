@@ -1,3 +1,11 @@
+create or replace PROCEDURE POPULATE_ALL_TABLES AS 
+BEGIN
+      
+  NULL;
+END POPULATE_ALL_TABLES;
+
+
+
 INSERT INTO customer VALUES 
 ('1', 'customer1@email.com', 'Albus Dumbledore', '23, alby hogwarts', '2123345556'),
 ('2', 'customer2@email.com', 'Harry potter', '10, alby hogwarts west', '3342125556');

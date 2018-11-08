@@ -1,120 +1,57 @@
 create or replace PROCEDURE DROP_ALL_TABLES AS 
 BEGIN
-    BEGIN
-        EXECUTE IMMEDIATE 'DROP TABLE orders';
-        EXCEPTION
-            WHEN OTHERS THEN
-                NULL;
-    END;
-    
-    BEGIN
-        EXECUTE IMMEDIATE 'DROP TABLE car';
-        EXCEPTION
-            WHEN OTHERS THEN
-                NULL;
-    END;
-    
-    BEGIN
-        EXECUTE IMMEDIATE 'DROP TABLE customer';
-        EXCEPTION
-            WHEN OTHERS THEN
-                NULL;
-    END;
-    
-    BEGIN
-        EXECUTE IMMEDIATE 'DROP TABLE inventory';
-        EXCEPTION
-            WHEN OTHERS THEN
-                NULL;
-    END;
-    
-    BEGIN
-        EXECUTE IMMEDIATE 'DROP TABLE distributor';
-        EXCEPTION
-            WHEN OTHERS THEN
-                NULL;
-    END;
-    
-    BEGIN
-        EXECUTE IMMEDIATE 'DROP TABLE appointment';
-        EXCEPTION
-            WHEN OTHERS THEN
-                NULL;
-    END;
-    
-    BEGIN
-        EXECUTE IMMEDIATE 'DROP TABLE invoice';
-        EXCEPTION
-            WHEN OTHERS THEN
-                NULL;
-    END;
-    
-    
-    
-    
-    BEGIN
-        EXECUTE IMMEDIATE 'DROP TABLE hourly_payroll';
-        EXCEPTION
-            WHEN OTHERS THEN
-                NULL;
-    END;
-    
-    BEGIN
-        EXECUTE IMMEDIATE 'DROP TABLE monthly_payroll';
-        EXCEPTION
-            WHEN OTHERS THEN
-                NULL;
-    END;
-    
-    BEGIN
-        EXECUTE IMMEDIATE 'DROP TABLE payroll';
-        EXCEPTION
-            WHEN OTHERS THEN
-                NULL;
-    END;
-    
-    BEGIN
-        EXECUTE IMMEDIATE 'DROP TABLE timeslot';
-        EXCEPTION
-            WHEN OTHERS THEN
-                NULL;
-    END;
 
     
-    BEGIN
-        EXECUTE IMMEDIATE 'DROP TABLE service_center';
-        EXCEPTION
-            WHEN OTHERS THEN
-                NULL;
-    END;
     
-    BEGIN
-        EXECUTE IMMEDIATE 'DROP TABLE employee';
-        EXCEPTION
-            WHEN OTHERS THEN
-                NULL;
-    END;
-    
-    BEGIN
-        EXECUTE IMMEDIATE 'DROP TABLE maintenance_service';
-        EXCEPTION
-            WHEN OTHERS THEN
-                NULL;
-    END;
-    
-    BEGIN
-        EXECUTE IMMEDIATE 'DROP TABLE repair_service';
-        EXCEPTION
-            WHEN OTHERS THEN
-                NULL;
-    END;
-    
-    BEGIN
-        EXECUTE IMMEDIATE 'DROP TABLE service';
-        EXCEPTION
-            WHEN OTHERS THEN
-                NULL;
-    END;
-    
+   EXECUTE IMMEDIATE
+    'DROP TABLE Service_Center CASCADE CONSTRAINTS';EXECUTE IMMEDIATE
+    'DROP TABLE Invoice CASCADE CONSTRAINTS';EXECUTE IMMEDIATE
+    'DROP TABLE Parts CASCADE CONSTRAINTS';EXECUTE IMMEDIATE
+    'DROP TABLE Payroll CASCADE CONSTRAINTS';EXECUTE IMMEDIATE
+    'DROP TABLE Monthly_Payroll CASCADE CONSTRAINTS';EXECUTE IMMEDIATE
+    'DROP TABLE Hourly_Payroll CASCADE CONSTRAINTS';EXECUTE IMMEDIATE
+    'DROP TABLE Has_Parts CASCADE CONSTRAINTS';EXECUTE IMMEDIATE
+    'DROP TABLE Supported_Services CASCADE CONSTRAINTS';EXECUTE IMMEDIATE
+    'DROP TABLE Has_Services CASCADE CONSTRAINTS';EXECUTE IMMEDIATE
+    'DROP TABLE Required_Parts CASCADE CONSTRAINTS';EXECUTE IMMEDIATE
+    'DROP TABLE Orders CASCADE CONSTRAINTS';EXECUTE IMMEDIATE
+    'DROP TABLE Timeslots CASCADE CONSTRAINTS';EXECUTE IMMEDIATE
+    'DROP TABLE Car CASCADE CONSTRAINTS';EXECUTE IMMEDIATE
+    'DROP TABLE Users CASCADE CONSTRAINTS';EXECUTE IMMEDIATE
+    'DROP TABLE Customer CASCADE CONSTRAINTS';EXECUTE IMMEDIATE
+    'DROP TABLE Employee CASCADE CONSTRAINTS';EXECUTE IMMEDIATE
+    'DROP TABLE has_cars CASCADE CONSTRAINTS';EXECUTE IMMEDIATE
+    'DROP TABLE Has_Invoice CASCADE CONSTRAINTS';EXECUTE IMMEDIATE
+    'DROP TABLE Has_Pay CASCADE CONSTRAINTS';EXECUTE IMMEDIATE
+    'DROP TABLE Appointment CASCADE CONSTRAINTS';EXECUTE IMMEDIATE
+    'DROP TABLE Booked CASCADE CONSTRAINTS';EXECUTE IMMEDIATE
+    'DROP TABLE Has_Mechanic CASCADE CONSTRAINTS';EXECUTE IMMEDIATE
+    'DROP TABLE Has_Receptionist CASCADE CONSTRAINTS';EXECUTE IMMEDIATE
+    'DROP TABLE Has_manager CASCADE CONSTRAINTS';
+     
+    EXECUTE IMMEDIATE 'drop sequence Service_Center_Seq';
+EXECUTE IMMEDIATE 'drop sequence Invoice_Seq';
+EXECUTE IMMEDIATE 'drop sequence Parts_Seq';
+EXECUTE IMMEDIATE 'drop sequence Payroll_Seq';
+EXECUTE IMMEDIATE 'drop sequence Monthly_Payroll_Seq';
+EXECUTE IMMEDIATE 'drop sequence Hourly_Payroll_Seq';
+EXECUTE IMMEDIATE 'drop sequence Has_Parts_Seq';
+EXECUTE IMMEDIATE 'drop sequence Supported_Services_Seq';
+EXECUTE IMMEDIATE 'drop sequence Required_Parts_Seq';
+EXECUTE IMMEDIATE 'drop sequence Orders_Seq';
+EXECUTE IMMEDIATE 'drop sequence Timeslots_Seq';
+EXECUTE IMMEDIATE 'drop sequence Car_Seq';
+EXECUTE IMMEDIATE 'drop sequence Users_Seq';
+EXECUTE IMMEDIATE 'drop sequence Customer_Seq';
+EXECUTE IMMEDIATE 'drop sequence Employee_Seq';
+EXECUTE IMMEDIATE 'drop sequence Has_Cars_Seq';
+EXECUTE IMMEDIATE 'drop sequence Has_Invoice_Seq';
+EXECUTE IMMEDIATE 'drop sequence Has_Pay_Seq';
+EXECUTE IMMEDIATE 'drop sequence Appointment_Seq';
+EXECUTE IMMEDIATE 'drop sequence Booked_Seq';
+EXECUTE IMMEDIATE 'drop sequence Has_Mechanic_Seq';
+EXECUTE IMMEDIATE 'drop sequence Has_Receptionist_Seq';
+EXECUTE IMMEDIATE 'drop sequence Has_manager_Seq';
+      
   NULL;
 END DROP_ALL_TABLES;
