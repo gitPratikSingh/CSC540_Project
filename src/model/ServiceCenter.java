@@ -2,40 +2,41 @@ package model;
 
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.Date;
 
 import db.DBBuilder;
 
 public class ServiceCenter {
+
+	/*
+	Service_Centre
+		(
+		service_centre_id INTEGER
+		telephone VARCHAR(10)
+		name VARCHAR(20)
+		address VARCHAR(30)
+		PRIMARY KEY(service_centre_id )
+		)
+
+	 * 
+	 * */
+
 	
-	private static int getNextId(){
-		int service_center_id = 0;
-		try {
-			Statement stmt = null;
-			stmt = DBBuilder.getConnection().createStatement();
-			ResultSet rs = stmt.executeQuery("select Service_Center_Seq.nextval from dual");
-			rs.next();
-			service_center_id = rs.getInt(1);
-		} 
-    	catch(Throwable e) {
-	        e.printStackTrace();
-	    }
-		return service_center_id;
-		
-	}
-	
-	public static int create(String telephone, String name, String address){
+	public static void create(int service_centre_id, String telephone, String name, String address) {
 		
 		Statement stmt = null;
-		int service_center_id =getNextId();
+		
 		telephone = "'"+telephone+"'";
 		name = "'"+name+"'";
 		address = "'"+address+"'";
 		
-		String sql =  "INSERT INTO Service_Center(service_center_id, telephone, name, address) VALUES("
-				+ service_center_id+","
+		String sql =  "INSERT INTO Service_Centre VALUES("
+				+ service_centre_id+","
 				+ telephone +","
 				+ name +","
-				+ address +")"
+				+ address 
+				+")"
 				;
 		
 		try {	
@@ -46,8 +47,44 @@ public class ServiceCenter {
     	catch(Throwable e) {
 	        e.printStackTrace();
 	    }
-		return service_center_id;
+		
+	}
+	
+	public static void delete(int service_centre_id) {
+		
+		Statement stmt = null;
+		String sql =  "DELETE FROM Service_Centre WHERE service_centre_id = " + service_centre_id;
+		
+		try {	
+			stmt = DBBuilder.getConnection().createStatement();
+	        System.out.println(sql);
+			stmt.executeUpdate(sql);
+		} 
+    	catch(Throwable e) {
+	        e.printStackTrace();
+	    }
 		
 	}
 
+	public static void update(int service_centre_id, String telephone, String name, String address) {
+		
+		Statement stmt = null;
+		telephone = "'"+telephone+"'";
+		name = "'"+name+"'";
+		address = "'"+address+"'";
+		
+		String sql =  "Update Service_Centre Set telephone = " +telephone+
+				", name = " +name+
+				", address = " +address+
+				" WHERE service_centre_id = " + service_centre_id;;
+		
+		try {	
+			stmt = DBBuilder.getConnection().createStatement();
+	        System.out.println(sql);
+			stmt.executeUpdate(sql);
+		} 
+		catch(Throwable e) {
+	        e.printStackTrace();
+	    }
+	}
 }
