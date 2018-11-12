@@ -39,7 +39,7 @@ public class HasMechanic {
 	    }
 	}
 	
-	public static void delete(int service_centre_Id, int employee_id) {
+	public static void delete(int service_centre_id, int employee_id) {
 		Statement stmt = null;
 		 String sql =  "DELETE FROM Has_mechanic WHERE service_centre_id ="
 				+ service_centre_id+" AND employee_id ="
@@ -55,3 +55,4 @@ public class HasMechanic {
 	        e.printStackTrace();
 	    }
 	}
+}

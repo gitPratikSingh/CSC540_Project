@@ -39,7 +39,7 @@ public class MainController {
 	/**
 	 * Where the program starts
 	 */
-	private void startMenu() {
+	void startMenu() {
 
 		System.out.print(START_MENU);
 
@@ -106,13 +106,13 @@ public class MainController {
 				
 		switch (validateCredentials(username, password)) {
 		case "manager":
-			managerMenu();
+			managerMenu(username);
 			break;
 		case "receptionist":
-			receptionistMenu();
+			receptionistMenu(username);
 			break;
 		case "customer":
-			customerMenu();
+			customerMenu(username);
 			break;
 		case "":
 			System.out.println("Invalid Crednatials!!\n Please try again!\n");
@@ -124,16 +124,16 @@ public class MainController {
 		
 	}
 	
-	private void customerMenu() {
-		new CustomerController().customerMenu();
+	private void customerMenu(String username) {
+		new CustomerController().customerMenu(this, username);
 	}
 
-	private void receptionistMenu() {
+	private void receptionistMenu(String username) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	private void managerMenu() {
+	private void managerMenu(String username) {
 		// TODO Auto-generated method stub
 		
 	}
@@ -144,6 +144,7 @@ public class MainController {
 		
 		String user_query = "SELECT count(*) FROM USERS WHERE email="+username +" AND password = "+password;
 		String role_query = "SELECT role FROM EMPLOYEE WHERE email="+username;
+		String customer_query = "SELECT count(*) FROM CUSTOMER WHERE email="+username;
 		
 		int userExists = 0;
 		
@@ -168,7 +169,13 @@ public class MainController {
 				if(rs.next())
 					role = rs.getString(1);
 				else
-					role = "customer";
+				{
+					stmt = DBBuilder.getConnection().createStatement();
+					rs = stmt.executeQuery(customer_query);
+					
+					if(rs.next())
+						role = "customer";
+				}
 			} 
 	    	catch(Throwable e) {
 		        e.printStackTrace();
@@ -215,6 +222,36 @@ public class MainController {
 	
 	private void signup(String email, String password, String name, String address, String phone) {
 		// use user's model to store the data
+		
+		email = "'"+email+"'";
+		password = "'"+password+"'";
+		name = "'"+name+"'";
+		address = "'"+address+"'";
+		phone = "'"+phone+"'";
+		
+		Statement stmt = null;
+		
+		String sql =  "INSERT INTO USERS VALUES("
+				+ email+","
+				+ name +","
+				+ address +","
+				+ phone +","
+				+ password 
+				+")"
+				;
+		
+		try {	
+			stmt = DBBuilder.getConnection().createStatement();
+	        System.out.println(sql);
+			stmt.executeUpdate(sql);
+		} 
+    	catch(Throwable e) {
+	        e.printStackTrace();
+	    }
+		
+		System.out.println("User created Successfully!\n ");
+		
+		loginMenu();
 		
 	}
 
