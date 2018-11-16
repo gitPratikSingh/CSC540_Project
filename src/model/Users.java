@@ -11,17 +11,18 @@ public class Users {
 		
 		
 		public static void create(
-				String email, 
+				String email,
 				String name,
 				String address,
-				String phone)
+				String phone,
+				String password)
 		{
 			
 			Statement stmt = null;
 			try {	
 				stmt = DBBuilder.getConnection().createStatement();
 				String sql = "INSERT INTO "+TableName+" VALUES ('"+email+"','"
-				+name+"','"+address+"','"+phone+"')"
+				+name+"','"+address+"','"+phone+"','"+password+"')"
 				;
 				
 		        System.out.println(sql);
@@ -102,15 +103,13 @@ public class Users {
 	
 /*	public static void main(String [] args)
 	{
-		Users.create("ren@1243.com", "renekton", "summoners","9198679433");
-		//Users.update("rene", "summoners","ren@124.com", "919867922");
-		//Users.update("ren@124.com","phone","909009990");
-		//Users.delete("ren@124.com");
+		Users.create("test_manager@123", "test_mgr", "test_Addr","919-867-9433","test123");
+		
 		
 		//Customer.delete(55,"ren@124.com");
 		
 	}
 	*/
-	//*/
+	
 
 }

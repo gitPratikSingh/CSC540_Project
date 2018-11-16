@@ -70,12 +70,12 @@ public static void delete(int payroll_id) {
 		
 
 	}
-/*
-	public static void main(String [] args)
+
+/*	public static void main(String [] args)
 	{
-		//Payrolls.create(55,"monthly");
+		Payrolls.create(54,"monthly");
 		//Payrolls.update(55, "payroll_type", "hourly");
-		Payrolls.delete(55);
+	//	Payrolls.delete(55);
 
 	}
 	*/

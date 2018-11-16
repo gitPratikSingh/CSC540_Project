@@ -79,13 +79,14 @@ public static int delete(int payroll_id) {
 
 	}
 
-	public static void main(String [] args)
+/*public static void main(String [] args)
 	{
-		//MonthlyPayrolls.create(55,"January",10000);
+		//MonthlyPayrolls.create(54,"January",10000);
 		//Payrolls.update(55, "payroll_type", "hourly");
 		//Payrolls.delete(55);
+		hasPay.create(54, 540);
 
 	}
-	
+	*/
 
 }

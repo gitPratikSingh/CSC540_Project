@@ -1,7 +1,14 @@
 package controller;
 import java.util.Scanner;
+import helpers.ManagerHelper;
+import helpers.Constants;
 import model.Employees;
+import model.HasMechanic;
+import model.HasReceptionist;
+import model.HourlyPayrolls;
+import model.MonthlyPayrolls;
 import model.Users;
+import model.hasPay;
 import model.Payrolls;
 
 
@@ -10,7 +17,14 @@ public class ManagerController {
 	//Using single scanner to read from entire class
 	static Scanner reader = new Scanner(System.in);
 	
+	//default SID 
+	public static String ManagerSid = "S004";
+	public static String ManagerEmployeeId =" ";
 	
+	public static void setManager(String email)
+	{
+		
+	}
 	
 	
 	public static void defaultPage()
@@ -455,7 +469,8 @@ Compensation,Frequency,(monthly/hourly), Units (# of,hours/days),Earnings
 	public static void addNewEmployee()
 	{
 			//randomly generate the employee ID and set default password as 12345678
-		    int employee_id =helper.generateRandom();	
+		    int employee_id =ManagerHelper.generateRandom();	
+		    String password = "12345678";
 		
 		    System.out.println("Employee ID is generated as "+employee_id);
 		 	System.out.println("His default password is 12345678");
@@ -478,7 +493,7 @@ Compensation,Frequency,(monthly/hourly), Units (# of,hours/days),Earnings
 			System.out.println("E.Role");
 			String role=reader.nextLine();
 			
-			System.out.println("F.Start Date");
+			System.out.println("F.Start Date in format mm/dd/yyyy");
 			String start_date=reader.nextLine();
 			
 			System.out.println("F.Compensation (in $)");
@@ -487,31 +502,46 @@ Compensation,Frequency,(monthly/hourly), Units (# of,hours/days),Earnings
 		
 			System.out.println("1.Add");
 			System.out.println("2.Go back");
-		
+			
+			
+			String start_month="january";
+			int payroll_id = 500;
 			int n = reader.nextInt();
 			if (n==1) { 
 		    // check if role matches
-			if(helper.isValidRole(role)) {
-		    
-		    // check if the service center already has the employee 
-			
-			//create the employee ID
-			
+			if(ManagerHelper.isValidRole(role)) {
 				
 			//Debug- need to add exception for wrong credential
-			Users.create(email_address,name,address,phone_number);	
-			Employees.create(employee_id, email_address, role);
 			
 			if(role=="receptionist")
 			{
-				//create payroll 
+				
+				Users.create(email_address, name, address, phone_number, password);
+				Employees.create(employee_id, email_address, Constants.RECEPTIONIST);
+				Payrolls.create(payroll_id, Constants.MONTHLY_PAYROLL);
+				//need to iterate the months for aggrigate bill 
+				
+				MonthlyPayrolls.create(payroll_id, start_month, compensation);
+				hasPay.create(payroll_id, employee_id);
+				//add check if receptionist is already there for the service centre ???
+				
+				HasReceptionist.create(ManagerSid, employee_id);
+				
 			}
 			else if(role=="mechanic")
 			{
-				//create payroll
+			
+				Users.create(email_address, name, address, phone_number, password);
+				Employees.create(employee_id, email_address, Constants.MECHANIC);
+				Payrolls.create(payroll_id, Constants.HOURLY_PAYROLL);
+				
+				//add check if receptionist is already there for the service centre ???
+				HourlyPayrolls.create(payroll_id, compensation,0 );
+				hasPay.create(payroll_id, employee_id);
+				
+				HasMechanic.create(ManagerSid, employee_id);
 			}
-				
-				
+					
 			System.out.println( "employee is created with ID"+employee_id);
 			}
 			else 
@@ -559,7 +589,7 @@ Compensation,Frequency,(monthly/hourly), Units (# of,hours/days),Earnings
 		System.out.println("3.Compensation");
 		
 		//cannot edit employee ID, 
-		//String.format("%05d", yournumber);
+		//String.format("%05d", your number);
 		System.out.println("1.write the change");
 		System.out.println("2.Go Back");
 		

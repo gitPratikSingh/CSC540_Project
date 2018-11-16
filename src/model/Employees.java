@@ -79,13 +79,15 @@ public static String delete(int employee_id,String email) {
 		return email;
 
 	}
-/*
-public static void main(String [] args)
-{
-	//Employees.create(55,"ren@124.com","manager");
-	//Employees.update(55,"ren@124.com", "role", "receptionist");
-	Employees.delete(55, "ren@124.com");
-}
-	*/
 
+	
+
+/*public static void main(String [] args)
+{
+	Employees.create(540,"test_manager@123","manager");
+	//Employees.update(55,"ren@124.com", "role", "receptionist");
+	//Employees.delete(55, "ren@124.com");
+}
+	
+*/
 }

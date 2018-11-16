@@ -7,7 +7,7 @@ import db.DBBuilder;
 
 public class HasServices {
 
-	public static void create(int service_center_id, String make, String model, String service_type) {
+	public static void create(String service_center_id, String make, String model, String service_type) {
 		
 		Statement stmt = null;
 		
@@ -33,7 +33,7 @@ public class HasServices {
 	    }
 	}
 	
-	public static void delete(int service_centre_id, String make, String model, String service_type) {
+	public static void delete(String service_centre_id, String make, String model, String service_type) {
 		
 		Statement stmt = null;
 		make = "'"+make+"'";

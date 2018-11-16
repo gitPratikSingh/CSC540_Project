@@ -20,10 +20,10 @@ public class HasReceptionist {
 
 	 * 
 	 * */
-	 public static void create(int service_centre_id, int employee_id){
+	 public static void create(String service_centre_id, int employee_id){
 		 Statement stmt = null;
-		 String sql =  "INSERT INTO Has_Receptionist VALUES("
-				+ service_centre_id+","
+		 String sql =  "INSERT INTO Has_Receptionist VALUES('"
+				+ service_centre_id+"',"
 				+ employee_id +")"
 				;
 		 
@@ -40,8 +40,8 @@ public class HasReceptionist {
 	
 	public static void delete(int service_centre_id, int employee_id) {
 		Statement stmt = null;
-		 String sql =  "DELETE FROM Has_Receptionist WHERE service_centre_id ="
-				+ service_centre_id+" AND employee_id ="
+		 String sql =  "DELETE FROM Has_Receptionist WHERE service_centre_id ='"
+				+ service_centre_id+"' AND employee_id ="
 				+ employee_id ;
 		
 		

@@ -16,7 +16,7 @@ public class MonthlyPayrolls {
 	public static void create(
 			int payroll_id, 
 			String month,
-			int monthly_salary 
+			float monthly_salary 
 			)
 	{
 		
@@ -42,7 +42,6 @@ public static void update(
 		String string_value	)
 		{
 	Statement stmt = null;
-	
 	
 	String sql = "UPDATE "+TableName+" SET "+column_name+" = '"+string_value+"' WHERE payroll_id = "+payroll_id;
 	
@@ -74,15 +73,15 @@ public static int delete(int payroll_id) {
 		return payroll_id;
 
 	}
-/*
-	public static void main(String [] args)
+
+	/*public static void main(String [] args)
 	{
-		MonthlyPayrolls.create(55,"January",10000);
+		MonthlyPayrolls.create(54,"January",10000);
 		//Payrolls.update(55, "payroll_type", "hourly");
 		//Payrolls.delete(55);
 
 	}
-	*/
 	
+	*/
 	
 }

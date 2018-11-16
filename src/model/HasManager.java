@@ -9,10 +9,10 @@ import db.DBBuilder;
 
 public class HasManager {
 
-	 public static void create(int service_centre_id, int employee_id){
+	 public static void create(String service_centre_id, int employee_id){
 		 Statement stmt = null;
-		 String sql =  "INSERT INTO Has_Manager VALUES("
-				+ service_centre_id+","
+		 String sql =  "INSERT INTO Has_Manager VALUES('"
+				+ service_centre_id+"',"
 				+ employee_id +")"
 				;
 		 
@@ -27,10 +27,10 @@ public class HasManager {
 	    }
 	}
 	
-	public static void delete(int service_centre_id, int employee_id) {
+	public static void delete(String service_centre_id, int employee_id) {
 		Statement stmt = null;
-		 String sql =  "DELETE FROM Has_Manager WHERE service_centre_id ="
-				+ service_centre_id+" AND employee_id ="
+		 String sql =  "DELETE FROM Has_Manager WHERE service_centre_id ='"
+				+ service_centre_id+"' AND employee_id ="
 				+ employee_id ;
 		
 		
@@ -43,4 +43,14 @@ public class HasManager {
 	        e.printStackTrace();
 	    }
 	}
+
+	/*
+	public static void main(String [] args)
+{
+	HasManager.create("S0001", 540);
+
+}
+*/
+	
+
 }

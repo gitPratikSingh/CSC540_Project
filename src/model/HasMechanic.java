@@ -21,10 +21,10 @@ public class HasMechanic {
 	 * 
 	 * */
 	 
-	 public static void create(int service_centre_id, int employee_id){
+	 public static void create(String sid, int employee_id){
 		 Statement stmt = null;
-		 String sql =  "INSERT INTO Has_mechanic VALUES("
-				+ service_centre_id+","
+		 String sql =  "INSERT INTO Has_mechanic VALUES('"
+				+ sid+"',"
 				+ employee_id +")"
 				;
 		 
@@ -41,8 +41,8 @@ public class HasMechanic {
 	
 	public static void delete(int service_centre_id, int employee_id) {
 		Statement stmt = null;
-		 String sql =  "DELETE FROM Has_mechanic WHERE service_centre_id ="
-				+ service_centre_id+" AND employee_id ="
+		 String sql =  "DELETE FROM Has_mechanic WHERE service_centre_id ='"
+				+ service_centre_id+"' AND employee_id ="
 				+ employee_id ;
 		
 		
