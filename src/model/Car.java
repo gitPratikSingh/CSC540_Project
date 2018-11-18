@@ -122,6 +122,29 @@ public class Car {
 	}
 	
 	
+public static ResultSet getMakeModel(String License_plate_number){
+		
+		Statement stmt = null;
+		String sql =  "SELECT make, model FROM Car WHERE License_plate_number = " + License_plate_number;
+		
+		try {	
+			stmt = DBBuilder.getConnection().createStatement();
+	        System.out.println(sql);
+			ResultSet rs = stmt.executeQuery(sql);
+			
+			return rs;
+			
+		} 
+    	catch(Throwable e) {
+	        e.printStackTrace();
+	    }
+		
+		return null;
+		
+	}
+	
+	
+	
 	public static void main(String args[]){
 		
 		Car.create("xu-ks-3232", "Make", "2012", "Model", "2012-09-18", null, "2012-09-08", 1234, null);

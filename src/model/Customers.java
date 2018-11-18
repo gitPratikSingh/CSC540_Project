@@ -1,6 +1,7 @@
 package model;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.Statement;
 
 import db.DBBuilder;
@@ -8,6 +9,33 @@ import db.DBBuilder;
 public class Customers {
 	public static String TableName = "Customer";
 	
+	public static final String RALEIGH="Raleigh";
+	public static final String CHARLOTTE="Charlotte";
+	
+	public static String getCity(String email)
+	{
+		Statement stmt = null;
+		try {	
+			stmt = DBBuilder.getConnection().createStatement();
+			String sql = "SELECT address from USERS WHERE email="+email;
+			
+	        System.out.println(sql);
+	        ResultSet rs = stmt.executeQuery(sql);
+	        if (rs.next()) {
+	 	       String adr = rs.getString("ADDRESS");
+	 	       if(adr.indexOf(RALEIGH)!=-1){
+	 	    	   return RALEIGH;
+	 	       }else{
+	 	    	   return CHARLOTTE;
+	 	       }
+	 	    }
+		} 
+    	catch(Throwable e) {
+	        e.printStackTrace();
+	    }
+		
+		return TableName;
+	}
 	
 	public static void create(
 			int customer_id, 

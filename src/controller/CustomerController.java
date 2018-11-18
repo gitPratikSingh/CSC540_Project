@@ -3,6 +3,7 @@ package controller;
 import java.sql.Connection;
 
 import model.Car;
+import model.Customers;
 import model.HasCars;
 import model.HasParts;
 import model.Parts;
@@ -30,6 +31,7 @@ public class CustomerController {
 	private final static String REGISTER_CAR_MENU = "-----\nCustomer: Register Car\n-----\n1. Register\n2. Cancel\n";
 	private final static String SERVICES_MENU = "-----\nCustomer: Service\n-----\n1. View Service History\n2. Schedule Service\n3. Reschedule Service\n4. Go Back\n";
 	private final static String SCHEDULE_MENU = "-----\nCustomer: Schedule Service\n-----\n1. Schedule Maintenance\n2. Schedule Repair\n3. Go Back\n";
+	private final static String SCHEDULE_MAINTENANCE = "-----\nCustomer: Schedule Maintenance\n-----\n1. Find Service Date\n2. Go Back\n";
 
 	
 	MainController textGUI;
@@ -130,11 +132,25 @@ private void reScheduleService() {
 
 private void scheduleService() {
 	
+	String lplate = "";
+	while(true){
 	System.out.print("\n Please enter the Licence plate number\n");
-	String lplate = scanner.nextLine();
+	lplate = scanner.nextLine();
+	if (lplate == null || lplate.equals("") == false)
+		break;
+	}
 	
+	int mileage = 0;
+	while(true){
 	System.out.print("\n Please enter the Current Mileage\n");
-	int mileage = Integer.parseInt(scanner.nextLine());
+	String str_milage = scanner.nextLine();
+	if (str_milage == null || str_milage.equals("") == false)
+		{
+			mileage = Integer.parseInt(scanner.nextLine());
+			break;
+		}
+		
+	}
 	
 	System.out.print("\n Please enter the Mechanic Name\n");
 	String mname = scanner.nextLine();
@@ -166,7 +182,33 @@ private void scheduleRepair(String lplate, int mileage, String mname) {
 }
 
 private void scheduleMaintenance(String lplate, int mileage, String mname) {
-	// TODO Auto-generated method stub
+	
+	System.out.print(SCHEDULE_MAINTENANCE);
+	
+	switch (checkNumericalInput(1, 2)) {
+	case -1:
+		scheduleMaintenance(lplate, mileage, mname);
+		break;
+	case 1:
+		findNextAvailableTwoServiceDates();
+		break;
+	case 2:
+		scheduleService();
+		break;
+	default:
+		break;
+	}
+	
+}
+
+private void findNextAvailableTwoServiceDates() {
+	
+	// find the city of the customer
+	// find the service center that is present in that city
+	
+	String city = Customers.getCity(this.username);
+	String service_center = ServiceCenter.findByCity(city);
+	
 	
 }
 
@@ -190,7 +232,7 @@ private void viewServiceHistory() {
 			+ "		JOIN APPOINTMENT ON BOOKED.appointment_id = APPOINTMENT.appointment_id "
 			+ "		LEFT JOIN EMPLOYEE ON EMPLOYEE.employee_id = APPOINTMENT.preferred_mechanic "
 			+ "		LEFT JOIN USERS ON EMPLOYEE.email = USERS.email "
-			+ "		JOIN TIMESLOTS ON TIMESLOTS.service_center_id = BOOKED.service_center_id AND TIMESLOTS.timeslots_id = APPOINTMENT.timeslots_id	"
+			+ "		JOIN TIMESLOTS ON TIMESLOTS.service_center_id = BOOKED.service_center_id AND TIMESLOTS.start_time = APPOINTMENT.start_time	"
 			+ "		WHERE customer_id = " + this.customerId; 
 	
 	
@@ -246,13 +288,21 @@ private void registerCarMenu(String username) {
 		String pdate = null, last_service_date = null;
 		int mileage;
 		
+		while(true){
 		System.out.print("\n Please enter the Licence plate number\n");
 		lplate = scanner.nextLine();
 		
+		if (lplate == null || lplate.equals("") == false)
+			break;
+		}
+		
+		while(true){
 		System.out.print("\n Please enter the Purchasedate in yyyy-mm-dd format \n");
-
 		pdate = scanner.nextLine();
-        
+		if (pdate == null || pdate.equals("") == false)
+			break;
+		}
+		
 		System.out.print("\n Please enter the make\n");
 		make = scanner.nextLine();
 		
