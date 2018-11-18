@@ -2,6 +2,9 @@ package helpers;
 
 
 import java.util.Random;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;  
+import java.util.Date;  
 import helpers.Constants;
 import model.Users;
 import model.hasPay;
@@ -42,7 +45,12 @@ public class ManagerHelper {
 		//
 			
 			
-		
+		public static Timestamp getCurrentTimestamp()
+		{
+
+			Timestamp time =new Timestamp(System.currentTimeMillis());
+			return time;
+		}
 	
 
 
@@ -50,21 +58,21 @@ public class ManagerHelper {
 		
 		
 		
-/*		public static void main(String [] arg)
+	/*	public static void main(String [] arg)
 		{
 			
 		
-			System.out.println(isValidRole("manager"));
+		/*	System.out.println(isValidRole("manager"));
 			
 			createManager("testManager@123", "testname" ,"testAddress","12345678","9999999999",
 				999999999, (float) 999.99,"S004",9999,"january" );
 	
-			
+		System.out.println(getCurrentDate());	
 			
 			
 		}
-	*/	
-		
+	
+		*/
 		
 		
 		

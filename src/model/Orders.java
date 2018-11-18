@@ -41,18 +41,18 @@ public class Orders {
 		
 	}
 	
-	public static void create(int service_center_id, Timestamp order_date, int part_id, int quantity, String status) {
+	public static void create(String service_center_id, Timestamp order_date, int part_id, int quantity, String status) {
 		
 		Statement stmt = null;
 	
 		status = "'"+status+"'";
-		
+		service_center_id= "'"+service_center_id+"'";
 		String sql =  "INSERT INTO Orders VALUES("
 				+ service_center_id +","
 				+ getNextId() + "," 
-				+ order_date +","
-				+ part_id +","
-				+ quantity +","
+				+"CURRENT_TIMESTAMP,"
+				+part_id+","
+				+quantity+","
 				+ status
 				+")"
 				;
