@@ -2,12 +2,15 @@ package controller;
 
 import java.sql.Connection;
 
+import model.Appointment;
+import model.Booked;
 import model.Car;
 import model.Customers;
 import model.HasCars;
 import model.HasParts;
 import model.Parts;
 import model.ServiceCenter;
+import model.Timeslots;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,6 +18,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Scanner;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
@@ -32,7 +36,10 @@ public class CustomerController {
 	private final static String SERVICES_MENU = "-----\nCustomer: Service\n-----\n1. View Service History\n2. Schedule Service\n3. Reschedule Service\n4. Go Back\n";
 	private final static String SCHEDULE_MENU = "-----\nCustomer: Schedule Service\n-----\n1. Schedule Maintenance\n2. Schedule Repair\n3. Go Back\n";
 	private final static String SCHEDULE_MAINTENANCE = "-----\nCustomer: Schedule Maintenance\n-----\n1. Find Service Date\n2. Go Back\n";
-
+	private final static String SCHEDULE_MAINTENANCE_DATES = "-----\nCustomer: Schedule Maintenance\n-----\n1. Schedule on Date\n2. Go Back\n";
+	private final static String SCHEDULE_REPAIR_MENU = "-----\nCustomer: Schedule Repair\n-----\n1. Engine knock\n2. Car drifts in a particular direction\n3. Battery does not hold charge\n4. Black/unclean exhaust\n5. A/C-Heater not working\n6. Headlamps/Tail lamps not working\n7. Check engine light\n8. Go Back\n";
+	
+	
 	
 	MainController textGUI;
 	String customerId="";
@@ -136,7 +143,7 @@ private void scheduleService() {
 	while(true){
 	System.out.print("\n Please enter the Licence plate number\n");
 	lplate = scanner.nextLine();
-	if (lplate == null || lplate.equals("") == false)
+	if ((lplate == null || lplate.equals("")) == false)
 		break;
 	}
 	
@@ -144,12 +151,11 @@ private void scheduleService() {
 	while(true){
 	System.out.print("\n Please enter the Current Mileage\n");
 	String str_milage = scanner.nextLine();
-	if (str_milage == null || str_milage.equals("") == false)
+	if ((str_milage == null || str_milage.equals("")) == false)
 		{
-			mileage = Integer.parseInt(scanner.nextLine());
+			mileage = Integer.parseInt(str_milage);
 			break;
 		}
-		
 	}
 	
 	System.out.print("\n Please enter the Mechanic Name\n");
@@ -177,7 +183,39 @@ private void scheduleService() {
 }
 
 private void scheduleRepair(String lplate, int mileage, String mname) {
-	// TODO Auto-generated method stub
+	
+	System.out.print(SCHEDULE_REPAIR_MENU);
+	switch (checkNumericalInput(1, 2)) {
+	case -1:
+		scheduleRepair(lplate, mileage, mname);
+		break;
+	case 1:
+		findNextAvailableTwoServiceDates(lplate, mileage, mname);
+		break;
+	case 2:
+		scheduleService();
+		break;
+	case 3:
+		scheduleService();
+		break;
+	case 4:
+		findNextAvailableTwoServiceDates(lplate, mileage, mname);
+		break;
+	case 5:
+		scheduleService();
+		break;
+	case 6:
+		scheduleService();
+		break;
+	case 7:
+		findNextAvailableTwoServiceDates(lplate, mileage, mname);
+		break;
+	case 8:
+		scheduleService();
+		break;
+	default:
+		break;
+	}
 	
 }
 
@@ -190,7 +228,7 @@ private void scheduleMaintenance(String lplate, int mileage, String mname) {
 		scheduleMaintenance(lplate, mileage, mname);
 		break;
 	case 1:
-		findNextAvailableTwoServiceDates();
+		findNextAvailableTwoServiceDates(lplate, mileage, mname);
 		break;
 	case 2:
 		scheduleService();
@@ -201,7 +239,7 @@ private void scheduleMaintenance(String lplate, int mileage, String mname) {
 	
 }
 
-private void findNextAvailableTwoServiceDates() {
+private void findNextAvailableTwoServiceDates(String lplate, int mileage, String mname) {
 	
 	// find the city of the customer
 	// find the service center that is present in that city
@@ -209,7 +247,74 @@ private void findNextAvailableTwoServiceDates() {
 	String city = Customers.getCity(this.username);
 	String service_center = ServiceCenter.findByCity(city);
 	
+	Timestamp[] availableTimeslots = ServiceCenter.getNextTwoAvailableDates(service_center, lplate, mileage);
+	System.out.println(SCHEDULE_MAINTENANCE_DATES);
 	
+	
+	switch (checkNumericalInput(1, 2)) {
+	case -1:
+		findNextAvailableTwoServiceDates(lplate, mileage, mname);
+		break;
+	case 1:
+		PickTheDate(availableTimeslots, lplate, service_center, mname);
+		break;
+	case 2:
+		scheduleService();
+		break;
+	default:
+		break;
+	}
+	
+}
+
+private void PickTheDate(Timestamp[] availableTimeslots, String lplate, String service_center, String mname) {
+	System.out.println("Available on the folloing date and time");
+	DateFormat format = new SimpleDateFormat( "yyyy-dd-MM h:mm a" );
+	String str1 = format.format( availableTimeslots[0] );
+	String str2 = format.format( availableTimeslots[2] );
+	
+	System.out.println(str1);
+	System.out.println(str2);
+	
+	System.out.println("Select 1 for the first date, 2 for the last date\n");
+	
+	switch (checkNumericalInput(1, 2)) {
+	case 1:
+		scheduleTheDate(lplate, service_center, availableTimeslots[0], availableTimeslots[1], availableTimeslots[4], availableTimeslots[5], availableTimeslots[6],  mname);
+		break;
+	case 2:
+		scheduleTheDate(lplate, service_center, availableTimeslots[2], availableTimeslots[3], availableTimeslots[4], availableTimeslots[5], availableTimeslots[6],  mname);
+		break;
+	case -1:
+		PickTheDate(availableTimeslots, lplate, service_center,  mname);
+		break;
+	default:
+		break;
+	}
+}
+
+private void scheduleTheDate(String lplate, String service_center, Timestamp start_time, Timestamp end_time, Timestamp serviceAmissed, Timestamp serviceBmissed, Timestamp serviceCmissed, String mname) {
+	String missedServices ="";
+	if(serviceAmissed != null){
+		missedServices = missedServices + "A";
+	}
+	
+	if(serviceBmissed != null){
+		missedServices = missedServices + "B";
+	}
+	
+	if(serviceCmissed != null){
+		missedServices = missedServices + "C";
+	}
+	
+	Timeslots.create(service_center, start_time, end_time, "maintenance:"+ missedServices);
+	int app_id = Appointment.create("pending", start_time, ServiceCenter.serviceNeeded, mname);
+	Booked.create(customerId, service_center, app_id, lplate);
+	
+	DateFormat format = new SimpleDateFormat( "yyyy-mm-dd h:mm a" );
+	String str = format.format( start_time );
+	System.out.println("\nService booked on "+str);
+	serviceMenu();
 }
 
 private void viewServiceHistory() {
@@ -513,7 +618,8 @@ private int checkNumericalInput(int startNum, int endNum) {
  public static void main(String args[]){
 	 CustomerController customerController = new CustomerController();
 	 customerController.customerId = "1001";
-	 customerController.viewServiceHistory();
+	 customerController.username = "ethanhunt@gmail.com";
+	 customerController.scheduleService();
 	 
  }
 

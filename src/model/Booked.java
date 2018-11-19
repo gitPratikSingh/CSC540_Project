@@ -9,12 +9,14 @@ import db.DBBuilder;
 
 public class Booked {
 
-	 public static void create(int customer_id, int service_centre_id, int appointments_id){
+	 public static void create(String customer_id, String service_centre_id, int appointments_id, String lplate){
 		 Statement stmt = null;
 		 String sql =  "INSERT INTO Booked VALUES("
-				+ customer_id+","
-				+ service_centre_id+","
-				+ appointments_id +")"
+				+ "'"+customer_id+"'"+","
+				+ "'"+service_centre_id+"'"+","
+				+ appointments_id + ","
+				+ "'"+lplate+"'"
+				+")"
 				;
 		 
 	 

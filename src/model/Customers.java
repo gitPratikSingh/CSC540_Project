@@ -15,6 +15,7 @@ public class Customers {
 	public static String getCity(String email)
 	{
 		Statement stmt = null;
+		email = "'"+email+"'";
 		try {	
 			stmt = DBBuilder.getConnection().createStatement();
 			String sql = "SELECT address from USERS WHERE email="+email;

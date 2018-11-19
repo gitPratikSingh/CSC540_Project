@@ -36,7 +36,7 @@ public class Car {
 		PreparedStatement cursor;
 		try {
 			cursor = DBBuilder.getConnection()
-					.prepareStatement("INSERT INTO Car VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+					.prepareStatement("INSERT INTO Car VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 			
 			
 			java.util.Date ldate = null, pdate = null;
@@ -66,7 +66,6 @@ public class Car {
 			 cursor.setString(6, Last_service_type);
 			 cursor.setDate(7, psqlDate);
 			 cursor.setInt(8, Last_recorded_miles);
-			 cursor.setString(9, serviceCenterId);			 
 			 cursor.executeUpdate();
  
 		} catch (SQLException e) {
@@ -122,10 +121,11 @@ public class Car {
 	}
 	
 	
-public static ResultSet getMakeModel(String License_plate_number){
+public static ResultSet getDetails(String License_plate_number){
 		
 		Statement stmt = null;
-		String sql =  "SELECT make, model FROM Car WHERE License_plate_number = " + License_plate_number;
+		License_plate_number = "'"+License_plate_number+"'";
+		String sql =  "SELECT * FROM Car WHERE License_plate_number = " + License_plate_number;
 		
 		try {	
 			stmt = DBBuilder.getConnection().createStatement();
@@ -147,7 +147,8 @@ public static ResultSet getMakeModel(String License_plate_number){
 	
 	public static void main(String args[]){
 		
-		Car.create("xu-ks-3232", "Make", "2012", "Model", "2012-09-18", null, "2012-09-08", 1234, null);
+		Car.getDetails("XYZ-5642");
+		Car.getDetails("DEL-8888");
 		
 	}
 }
