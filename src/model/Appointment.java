@@ -35,7 +35,7 @@ public class Appointment {
 		
 		try {	
 			stmt = DBBuilder.getConnection().createStatement();
-	        System.out.println(sql);
+	        //System.out.println(sql);
 			ResultSet rs = stmt.executeQuery(sql);
 			
 			while(rs.next()){
@@ -57,11 +57,11 @@ public class Appointment {
 		int preferred_mechanic_id =0;
 		try {	
 			stmt = DBBuilder.getConnection().createStatement();
-	        System.out.println(sql);
+	        //System.out.println(sql);
 			ResultSet rs = stmt.executeQuery(sql);
 			
 			while(rs.next()){
-				preferred_mechanic_id = rs.getInt(0);
+				preferred_mechanic_id = rs.getInt(1);
 			}
 		} 
     	catch(Throwable e) {
@@ -96,7 +96,7 @@ public class Appointment {
 		
 		try {	
 			stmt = DBBuilder.getConnection().createStatement();
-	        System.out.println(sql);
+	        //System.out.println(sql);
 			stmt.executeUpdate(sql);
 		} 
     	catch(Throwable e) {
@@ -117,7 +117,7 @@ public class Appointment {
 		
 		try {	
 			stmt = DBBuilder.getConnection().createStatement();
-	        System.out.println(sql);
+	       // System.out.println(sql);
 			stmt.executeUpdate(sql);
 		} 
 		catch(Throwable e) {

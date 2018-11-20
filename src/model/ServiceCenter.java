@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
 
 import db.DBBuilder;
@@ -23,11 +24,16 @@ public class ServiceCenter {
 	 * 
 	 * */
 	public static String serviceNeeded = "";
+	public static String serviceMake="";
+	public static String serviceModel="";
+	public static String partsRequired="";
+	
 	public static void main(String ars[]){
 		for(Timestamp t: ServiceCenter.getNextTwoAvailableDates("S001", "XYZ-5643", 11111))
 			System.out.println(t);
 	}
 
+	
 	public static Timestamp[] getNextTwoAvailableDates(String service_center_id, String licensePlateNumber, int mileage){
 		serviceNeeded= "";
 		String[] makeModel = new String[2];
@@ -58,7 +64,7 @@ public class ServiceCenter {
 		} catch (SQLException e1) {
 			e1.printStackTrace();
 		}
-		System.out.println("Make: "+makeModel[0]);
+		//System.out.println("Make: "+makeModel[0]);
 		String servicesMilesThresholdsQuery = "select service_type, miles from basic_services where make = '"+ makeModel[0] 
 				+"' and model= '" + makeModel[1]+ "' and service_type is not null group by service_type, miles";
 		
@@ -69,7 +75,7 @@ public class ServiceCenter {
 		try {
 			stmt = DBBuilder.getConnection().createStatement();
 			
-	        System.out.println(servicesMilesThresholdsQuery);
+	        //System.out.println(servicesMilesThresholdsQuery);
 	        rs = stmt.executeQuery(servicesMilesThresholdsQuery);
 	        while (rs.next()) {
 	 	       String service_type = rs.getString("SERVICE_TYPE");
@@ -86,6 +92,7 @@ public class ServiceCenter {
 		} 
     	catch(Throwable e) {
 	        e.printStackTrace();
+	        DBBuilder.close();
 	    }
 		
 		total = serviceA + serviceB + serviceC;
@@ -159,9 +166,9 @@ public class ServiceCenter {
 		
 		// see if the parts are available
 		boolean partsNotFoundInInventory = false;
-		try {	
+		try {
 			stmt = DBBuilder.getConnection().createStatement();
-	        System.out.println(newOrderQuery);
+	        //System.out.println(newOrderQuery);
 	        rs = stmt.executeQuery(newOrderQuery);
 	        while (rs.next()) {
 	 	       String service_type = rs.getString("PART_ID");
@@ -189,7 +196,7 @@ public class ServiceCenter {
 			
 			try {	
 				stmt = DBBuilder.getConnection().createStatement();
-		        System.out.println(serviceTimeQuery);
+		        //System.out.println(serviceTimeQuery);
 		        rs = stmt.executeQuery(serviceTimeQuery);
 		        
 		        while (rs.next()) {
@@ -230,7 +237,8 @@ public class ServiceCenter {
 			// (calculated based on when the order will be fulfilled).
 			
 		}
-			
+		serviceMake = makeModel[0];
+		serviceModel = makeModel[1];
 		return timestamps;
 	}
 	
@@ -241,7 +249,7 @@ public class ServiceCenter {
 			stmt = DBBuilder.getConnection().createStatement();
 			String sql = "SELECT service_centre_id, address from SERVICE_CENTER";
 			
-	        System.out.println(sql);
+	        //System.out.println(sql);
 	        ResultSet rs = stmt.executeQuery(sql);
 	        while (rs.next()) {
 	 	       String adr = rs.getString("ADDRESS");
@@ -276,7 +284,7 @@ public class ServiceCenter {
 		
 		try {	
 			stmt = DBBuilder.getConnection().createStatement();
-	        System.out.println(sql);
+	        //System.out.println(sql);
 			stmt.executeUpdate(sql);
 		} 
     	catch(Throwable e) {
@@ -292,7 +300,7 @@ public class ServiceCenter {
 		
 		try {	
 			stmt = DBBuilder.getConnection().createStatement();
-	        System.out.println(sql);
+	        //System.out.println(sql);
 			stmt.executeUpdate(sql);
 		} 
     	catch(Throwable e) {
@@ -316,11 +324,210 @@ public class ServiceCenter {
 		
 		try {	
 			stmt = DBBuilder.getConnection().createStatement();
-	        System.out.println(sql);
+	        //System.out.println(sql);
 			stmt.executeUpdate(sql);
 		} 
 		catch(Throwable e) {
 	        e.printStackTrace();
 	    }
+	}
+
+	public static Timestamp[] getNextTwoAvailableDatesForRepair(String service_center, String lplate, int mileage, ArrayList<String> partList, String mname) {
+		ResultSet rs = Car.getDetails(lplate);
+		String make="", model="";
+		Timestamp[] timestamps = new Timestamp[7];
+		try {
+			if(rs.next()){
+				
+				make = rs.getString("MAKE");
+				model = rs.getString("MODEL");
+			}
+		} catch (SQLException e1) {
+			e1.printStackTrace();
+		}
+				
+		for(String part: partList){
+			partsRequired = partsRequired+"'"+part+"',";
+		}
+		
+		partsRequired = partsRequired.substring(0, partsRequired.length()-1);
+		
+		String newOrderQuery = "SELECT HAS_PARTS.part_id, HAS_PARTS.min_quantity_threshold, HAS_PARTS.min_order_threshold" + 
+				" FROM BASIC_SERVICES" +
+				" JOIN PARTS ON BASIC_SERVICES.part_name = PARTS.part_name" +
+				" JOIN HAS_PARTS ON HAS_PARTS.part_id = PARTS.part_id AND HAS_PARTS.service_center_id = '" + service_center +"'"+
+				" WHERE BASIC_SERVICES.make= '"+ make +
+				"' AND BASIC_SERVICES.model= '" + model+
+				"' AND HAS_PARTS.current_quantity < BASIC_SERVICES.quantiy"
+				+ " AND BASIC_SERVICES.SERVICE_NAME IN("+partsRequired+")";
+		
+		Statement stmt = null;
+		boolean partsNotFoundInInventory = false;
+		try {	
+			stmt = DBBuilder.getConnection().createStatement();
+	        //System.out.println(newOrderQuery);
+			rs = stmt.executeQuery(newOrderQuery);
+			while (rs.next()) {
+		 	       String service_type = rs.getString("PART_ID");
+		 	       if(service_type != null || service_type.equals(""))
+		 	    	   partsNotFoundInInventory = true; 
+		 	       
+		 	       // order missing parts if no previous orders found!
+		 	       // todo
+			}
+		} 
+		catch(Throwable e) {
+	        e.printStackTrace();
+	    }
+		
+		Timestamp[] timeslots = null;
+		// if yes, then find the next available times
+		if(partsNotFoundInInventory == false){
+			// calculate the time required for service
+			String serviceTimeQuery = 
+					"SELECT SUM(TIME) as serviceTimeNeeded" + 
+					" FROM BASIC_SERVICES" +
+					" WHERE BASIC_SERVICES.make= '"+ make +
+					"' AND BASIC_SERVICES.model= '" + model+
+					"' AND BASIC_SERVICES.SERVICE_NAME IN("+partsRequired+")";
+			
+			try {	
+				stmt = DBBuilder.getConnection().createStatement();
+		       // System.out.println(serviceTimeQuery);
+		        rs = stmt.executeQuery(serviceTimeQuery);
+		        
+		        while (rs.next()) {
+		 	       int serviceTime = rs.getInt("SERVICETIMENEEDED");
+		 	       Timestamp[] tstamps = Timeslots.findTwoAvailableRepairSlots(service_center, serviceTime);
+		 	       timestamps[0] = tstamps[0];
+		 	       timestamps[1] = tstamps[1];
+		 	       timestamps[2] = tstamps[2];
+		 	       timestamps[3] = tstamps[3];
+		 	       timestamps[4] = null;
+		 	       timestamps[5] = null;
+		 	       timestamps[6] = null;
+		 	       
+		 	      
+		 	       
+		 	       /* Todo
+		 	        * 
+		 	        * Next, find the two earliest available date and time during which at least one mechanic is free 
+		 	        * (or the requested mechanic is free if a preference is provided), and return those to the user. 
+		 	        * Bear in mind that at no point can the total amount of time spent in servicing cars at a service 
+		 	        * center be greater than 5.5 hours in a particular day. So you will have to find date/time accordingly.
+		 	        * 
+		 	        * */
+		 	    }
+			} 
+	    	catch(Throwable e) {
+		        e.printStackTrace();
+		    }
+			
+		}else{
+			//show a message to the user asking him to try again after a specific date 
+			// (calculated based on when the order will be fulfilled).
+			
+		}
+		
+		serviceMake = make;
+		serviceModel = model;
+			
+		return timestamps;
+	}
+
+
+	public static Timestamp[] getRescheduledNextTwoAvailableDates(int serviceId, String serviceType) {
+		
+		serviceNeeded= "";
+		String[] makeModel = new String[2];
+		String LAST_SERVICE_TYPE="";
+		int LAST_RECORDED_MILES=0;
+		Timestamp[] timestamps = new Timestamp[7];
+		// there is a predetermined maintenance schedule based on the number of miles traveled since the last service
+		// service A = 0-10K miles
+		// service B = 10k-35k miles
+		// service C = 35k-85k
+		// service schedules rotate
+		// ** these numbers are car make,model specific
+		// select make,model, service_type, miles from basic_services where make='Honda' and model='Civic' and 
+		// service_type is not null
+		// group by make, model, service_type, miles
+		String sql =  "Select BOOKED.License_Plate_Number, BOOKED.SERVICE_CENTER_ID from BOOKED WHERE BOOKED.appointment_id = "+ serviceId;
+		String licensePlateNumber = "", service_center_id = "";
+		try {	
+			Statement stmt = DBBuilder.getConnection().createStatement();
+	        //System.out.println(sql);
+			ResultSet rs = stmt.executeQuery(sql);
+			
+			while(rs.next()){
+				licensePlateNumber = rs.getString(1);
+				service_center_id = rs.getString(2);
+			}
+		} 
+    	catch(Throwable e) {
+	        e.printStackTrace();
+	    }
+		
+		ResultSet rs = Car.getDetails(licensePlateNumber);
+		
+		try {
+			if(rs.next()){
+				
+				makeModel[0] = rs.getString("MAKE");
+				makeModel[1] = rs.getString("MODEL");
+				LAST_SERVICE_TYPE = rs.getString("LAST_SERVICE_TYPE");
+				LAST_RECORDED_MILES = rs.getInt("LAST_RECORDED_MILES");
+				
+			}
+		} catch (SQLException e1) {
+			e1.printStackTrace();
+		}
+		
+		serviceNeeded = serviceType;
+		
+		// once the servicetype is decided, find the parts, quantity, and time info
+		String newOrderQuery = "SELECT HAS_PARTS.part_id, HAS_PARTS.min_quantity_threshold, HAS_PARTS.min_order_threshold" + 
+		" FROM BASIC_SERVICES" +
+		" JOIN PARTS ON BASIC_SERVICES.part_name = PARTS.part_name" +
+		" JOIN HAS_PARTS ON HAS_PARTS.part_id = PARTS.part_id AND HAS_PARTS.service_center_id = '" + service_center_id +"'"+
+		" WHERE BASIC_SERVICES.make= '"+ makeModel[0] +
+		"' AND BASIC_SERVICES.model= '" + makeModel[1]+
+		"' AND BASIC_SERVICES.service_type = '" + serviceNeeded +
+		"' AND HAS_PARTS.current_quantity < BASIC_SERVICES.quantiy";
+		
+		
+		// see if the parts are available
+		boolean partsNotFoundInInventory = false;
+		Statement stmt;
+		try {
+			stmt = DBBuilder.getConnection().createStatement();
+	        //System.out.println(newOrderQuery);
+	        rs = stmt.executeQuery(newOrderQuery);
+	        while (rs.next()) {
+	 	       String service_type = rs.getString("PART_ID");
+	 	       if(service_type != null || service_type.equals(""))
+	 	    	   partsNotFoundInInventory = true; 
+	 	       
+	 	       // order missing parts if no previous orders found!
+	 	       // todo
+	 	    }
+		} 
+    	catch(Throwable e) {
+	        e.printStackTrace();
+	    }
+		
+		Timestamp[] timeslots = null;
+		
+		serviceMake = makeModel[0];
+		serviceModel = makeModel[1];
+		return timestamps;
+		
+	}
+
+
+	public static Timestamp[] getRepairRescheduledNextTwoAvailableDates(
+			int serviceId, String sERVICE_TYPE) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

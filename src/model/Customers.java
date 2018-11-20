@@ -20,7 +20,7 @@ public class Customers {
 			stmt = DBBuilder.getConnection().createStatement();
 			String sql = "SELECT address from USERS WHERE email="+email;
 			
-	        System.out.println(sql);
+	        //System.out.println(sql);
 	        ResultSet rs = stmt.executeQuery(sql);
 	        if (rs.next()) {
 	 	       String adr = rs.getString("ADDRESS");
@@ -50,7 +50,7 @@ public class Customers {
 			+email+"')"
 			;
 			
-	        System.out.println(sql);
+	        //System.out.println(sql);
 			stmt.executeUpdate(sql);
 		} 
     	catch(Throwable e) {

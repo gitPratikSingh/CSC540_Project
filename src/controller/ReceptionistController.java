@@ -8,16 +8,23 @@ import model.Car;
 import model.HasCars;
 import model.HasParts;
 import model.Parts;
+
 import model.ServiceCenter;
 import model.Users;
 import model.Employees;
 import model.Customers;
+import java.text.DateFormat;
+import model.Booked;
+import model.Appointment;
+import model.Timeslots;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Scanner;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -89,6 +96,7 @@ public class ReceptionistController {
 					this.viewServiceHistory();
 					break;
 			case "5": System.out.println("5");
+					this.scheduleService();
 					break;
 			case "6": System.out.println("6");
 					break;
@@ -340,6 +348,173 @@ public class ReceptionistController {
 		}
 		
 	
+	private ArrayList<String> get_BSS(String Service_type, String model, String make) {
+		String query = "select service_name from Basic_services"
+		+" where model='"+model+"' AND make='"+make+"' AND service_type='"+Service_type+"'";
+		ArrayList<String> bss = new ArrayList<String>();
+		Statement stmt;
+		try {
+			stmt = DBBuilder.getConnection().createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			
+		    while (rs.next()) {
+		    	bss.add(rs.getString("SERVICE_NAME"));
+		    	}
+		    }catch (SQLException e) {
+				e.printStackTrace();
+			}
+		return bss;
+	}
+	
+	
+	private HashMap<String,String> get_parts_details(String part,String make,String model) {
+		
+		String query= "select unit_price,warranty from parts where part_name = '"+part+"' and make = '"+make+"' and model = '"+model+"'";
+		Statement stmt;
+		String unit_price = "";
+		String warranty = "";
+		HashMap<String,String> Dict = new HashMap<String,String>();
+		try {
+			stmt = DBBuilder.getConnection().createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			
+		    while (rs.next()) {
+		    	unit_price = rs.getString("unit_price");
+		    	warranty = rs.getString("warranty");
+		    	
+		    }
+		}
+		    catch (SQLException e) {
+				e.printStackTrace();
+			}
+		Dict.put("unit_price", unit_price);
+    	Dict.put("warranty", warranty);
+    	return Dict;
+    	
+		    }
+	
+	
+	
+	
+	private HashMap<String,String> get_Bss_details(String item,String make,String model) {
+		String query = "select charge, time , part_name , quantity from Basic_service" + 
+				"where service_name = '"+item+"' AND make = '"+make+"' AND model = '"+model+"'";
+		Statement stmt;
+		String charge = "";
+		String time = "";
+		String part_name = "";
+		String quantity = "";
+		HashMap<String,String> Dict = new HashMap<String,String>();
+		try {
+			stmt = DBBuilder.getConnection().createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			
+		    while (rs.next()) {
+		    	charge = rs.getString("charge");
+		    	time = rs.getString("time");
+		    	part_name = rs.getString("part_name");
+		    	quantity = rs.getString("quantity");
+		    	
+		    }
+		}
+		    catch (SQLException e) {
+				e.printStackTrace();
+			}
+		Dict.put("charge", charge);
+    	Dict.put("time", time);
+    	Dict.put("part_name", part_name);
+    	Dict.put("quantity", quantity);
+    	return Dict;
+    	
+		    }
+			
+		
+	
+	
+	private void generateinvoice() {
+		System.out.println("Enter customer email address");
+		String email = scanner.nextLine();
+		String customer_id = getcustomerid(email);
+		
+		
+		String query = "SELECT APPOINTMENT.appointment_id, BOOKED.license_plate_number, car.make, car.model,APPOINTMENT.service_type, USERS.name as MechanicName, "
+				+ "		TIMESLOTS.start_time, TIMESLOTS.end_time, APPOINTMENT.status FROM BOOKED"
+				+ "		JOIN APPOINTMENT ON BOOKED.appointment_id = APPOINTMENT.appointment_id "
+				+ "		LEFT JOIN EMPLOYEE ON EMPLOYEE.employee_id = APPOINTMENT.preferred_mechanic "
+				+ "		LEFT JOIN USERS ON EMPLOYEE.email = USERS.email "
+				+ "     JOIN CAR ON BOOKED.license_plate_number = CAR.license_plate_number"
+				+ "		JOIN TIMESLOTS ON TIMESLOTS.service_center_id = BOOKED.service_center_id AND TIMESLOTS.start_time = APPOINTMENT.start_time	"
+				+ "		WHERE customer_id = " + customer_id + "and APPOINTMENT.status = completed" ; 
+		
+		Statement stmt;
+		try {
+			stmt = DBBuilder.getConnection().createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			
+		    while (rs.next()) {
+		    	HashMap<String,String> Labour_charge = new HashMap<String,String>();
+		    	HashMap<String,String> Part_charge = new HashMap<String,String>();
+		    	HashMap<String,String> Warranty = new HashMap<String,String>();
+		    	HashMap<String,String> BSS_DETAILS = new HashMap<String,String>();
+		    	HashMap<String,String> PART_DETAILS = new HashMap<String,String>();
+		    	HashMap<String,Float> TOTAL_COST = new HashMap<String,Float>();
+		    	ArrayList<String> BSS_LIST = new ArrayList<String>();
+		    	String make = rs.getString("make");
+		    	String model = rs.getString("model");
+		    	String service_id = rs.getString("APPOINTMENT_ID");
+		    	String license_plate = rs.getString("LICENSE_PLATE_NUMBER");
+		    	String service_type = rs.getString("SERVICE_TYPE");
+		    	String mechanic_name = rs.getString("MECHANICNAME");
+		    	String service_start_time = rs.getString("START_TIME");
+		    	String service_end_time = rs.getString("END_TIME");
+		    	String service_status = rs.getString("STATUS");
+		    	switch(service_type) {
+		    	case "C": BSS_LIST.addAll(get_BSS("C",make,model));
+		    	case "B": BSS_LIST.addAll(get_BSS("B",make,model));
+		    	case "A": BSS_LIST.addAll(get_BSS("A",make,model));
+		    			 break;
+		    	}
+		    	for (String t: BSS_LIST) {
+		    		BSS_DETAILS = get_Bss_details(t,make,model);
+		    		String part_name = BSS_DETAILS.get("part_name");
+		            PART_DETAILS = get_parts_details(part_name,make,model);
+		            Float service_charge = Float.parseFloat(BSS_DETAILS.get("charge")) * (Float.parseFloat(BSS_DETAILS.get("time")))/60 ;
+		    		Labour_charge.put(t,(""+service_charge));
+		    		Float part_charges = Float.parseFloat(BSS_DETAILS.get("quanity")) * Float.parseFloat(PART_DETAILS.get("unit_price"));
+		    		Part_charge.put(t,(""+part_charges));
+		    		int warranty = Integer.parseInt(PART_DETAILS.get("warranty"));
+		    		Warranty.put(t,(""+warranty));
+		    		TOTAL_COST.put(t, (service_charge + part_charges));
+		    	}
+		    	
+		    	
+		    }
+		    
+		} catch (SQLException e) {
+			e.printStackTrace();}
+		}
+		
+		
+				
+		
+		//Populate BSS 
+		/* select service_name from Basic_services
+			where model ='Corolla' AND make ='Toyota' AND service_type='A'
+			select service_name from Basic_services
+			where model ='Corolla' AND make ='Toyota' AND service_type='B'
+			select service_name from Basic_services
+			where model ='Corolla' AND make ='Toyota' AND service_type='C'
+			
+			for item in BSS:
+				select charge, time , part_name , quantity from Basic_service
+				where service_name = item AND make = make AND model = model
+				Labour_charge[item] = charge * float(time/60)
+				select unit_price,warranty from parts where part_name = part_name and make = make and model = model
+				Parts_charge[item] =  price * float(time/60)
+				warranty[item] = warranty
+		*/
+	
+	
 	
 	private void viewServiceHistory() {
 		
@@ -356,6 +531,7 @@ public class ReceptionistController {
 				+ "		JOIN TIMESLOTS ON TIMESLOTS.service_center_id = BOOKED.service_center_id AND TIMESLOTS.start_time = APPOINTMENT.start_time	"
 				+ "		WHERE customer_id = " + customer_id; 
 		
+		//System.out.println(query);
 		
 		Statement stmt;
 		try {
@@ -403,23 +579,6 @@ public class ReceptionistController {
 		}
 	    
 		return customerid;
-	}
-	
-	private String getEmail(){
-		String email;
-		email = "";
-		try {
-			Statement stmt = null;
-			stmt = DBBuilder.getConnection().createStatement();
-			ResultSet rs = stmt.executeQuery("select * from Users");
-			rs.next();
-			email = rs.getString(1);
-		} 
-    	catch(Throwable e) {
-	        e.printStackTrace();
-	    }
-		return email;
-		
 	}
 	
 
@@ -497,12 +656,9 @@ public class ReceptionistController {
 		String lplate = "";
 		String username ="";
 		
-		while(true){
-			System.out.print("\n Please enter the Email address of the customer\n");
-			username = scanner.nextLine();
-			if ((lplate == null || lplate.equals("")) == false)
-				break;
-			}
+		System.out.print("\n Please enter the Email address of the customer\n");
+		username = scanner.nextLine();
+		
 		
 		while(true){
 		System.out.print("\n Please enter the Licence plate number\n");
@@ -525,23 +681,23 @@ public class ReceptionistController {
 		System.out.print("\n Please enter the Mechanic Name\n");
 		String mname = scanner.nextLine();
 		
-		System.out.print("1. Schedule Maintenance");
-		System.out.print("2. Schedule Repair");
-		System.out.print("3. Go Back");
+		System.out.println("1. Schedule Maintenance");
+		System.out.println("2. Schedule Repair");
+		System.out.println("3. Go Back");
 		
 		String response = scanner.nextLine();
 		switch(response) {
-		case "1": scheduleMaintenance(lplate, mileage, mname);
+		case "1": scheduleMaintenance(username,lplate, mileage, mname);
 				  break;
-		case "2": scheduleRepair(lplate, mileage, mname);
-				  break;
+		//case "2": scheduleRepair(lplate, mileage, mname);
+		//		  break;
 		case "3": this.landing_page();
 				  break;
 		}
 		}
 		
 
-	private void scheduleMaintenance(String lplate, int mileage, String mname) {
+	private void scheduleMaintenance(String username,String lplate, int mileage, String mname) {
 		
 		System.out.println("1.Find Service Date");
 		System.out.println("2.Go Back");
@@ -550,7 +706,7 @@ public class ReceptionistController {
 		
 		switch (response) {
 		case "1":
-			findNextAvailableTwoServiceDates(lplate, mileage, mname);
+			findNextAvailableTwoServiceDates(username,lplate, mileage, mname);
 			break;
 		case "2":
 			scheduleService();
@@ -561,30 +717,70 @@ public class ReceptionistController {
 		
 	}
 	
-	private void findNextAvailableTwoServiceDates(String lplate, int mileage, String mname) {
+	private void findNextAvailableTwoServiceDates(String username,String lplate, int mileage, String mname) {
 		
 		
 		String city = Customers.getCity(this.username);
 		String service_center = ServiceCenter.findByCity(city);
 		
 		Timestamp[] availableTimeslots = ServiceCenter.getNextTwoAvailableDates(service_center, lplate, mileage);
-		System.out.println(SCHEDULE_MAINTENANCE_DATES);
+		System.out.println("1.Schedule on Date");
+		System.out.println("2.Go Back");
+		String response = scanner.nextLine();
+		switch(response) {
+		case "1": PickTheDate(username,availableTimeslots, lplate, service_center, mname);
+				  break;
+		case "2": scheduleService();
+				  break;}
+		}
 		
+	private void PickTheDate(String username,Timestamp[] availableTimeslots, String lplate, String service_center, String mname) {
+		System.out.println("Available on the folloing date and time");
+		DateFormat format = new SimpleDateFormat( "yyyy-dd-MM h:mm a" );
+		String str1 = format.format( availableTimeslots[0] );
+		String str2 = format.format( availableTimeslots[2] );
 		
-		switch (checkNumericalInput(1, 2)) {
-		case -1:
-			findNextAvailableTwoServiceDates(lplate, mileage, mname);
+		System.out.println(str1);
+		System.out.println(str2);
+		
+		System.out.println("Select 1 for the first date, 2 for the last date\n");
+		String response = scanner.nextLine();
+		
+		switch (response) {
+		case "1":
+			scheduleTheDate(username,lplate, service_center, availableTimeslots[0], availableTimeslots[1], availableTimeslots[4], availableTimeslots[5], availableTimeslots[6],  mname);
 			break;
-		case 1:
-			PickTheDate(availableTimeslots, lplate, service_center, mname);
-			break;
-		case 2:
-			scheduleService();
+		case "2":
+			scheduleTheDate(username,lplate, service_center, availableTimeslots[2], availableTimeslots[3], availableTimeslots[4], availableTimeslots[5], availableTimeslots[6],  mname);
 			break;
 		default:
 			break;
 		}
+	}
+	
+	private void scheduleTheDate(String username,String lplate, String service_center, Timestamp start_time, Timestamp end_time, Timestamp serviceAmissed, Timestamp serviceBmissed, Timestamp serviceCmissed, String mname) {
+		String missedServices ="";
+		if(serviceAmissed != null){
+			missedServices = missedServices + "A";
+		}
 		
+		if(serviceBmissed != null){
+			missedServices = missedServices + "B";
+		}
+		
+		if(serviceCmissed != null){
+			missedServices = missedServices + "C";
+		}
+		
+		Timeslots.create(service_center, start_time, end_time, "maintenance:"+ missedServices);
+		int app_id = Appointment.create("pending", start_time, ServiceCenter.serviceNeeded, mname);
+		String customerId = this.getcustomerid(username);
+		Booked.create(customerId, service_center, app_id, lplate);
+		
+		DateFormat format = new SimpleDateFormat( "yyyy-mm-dd h:mm a" );
+		String str = format.format( start_time );
+		System.out.println("\nService booked on "+str);
+		this.landing_page();
 	}
 	
 	
