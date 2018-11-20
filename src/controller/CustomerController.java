@@ -509,7 +509,7 @@ private void updateProfile(String username) {
 		break;
 	default:
 		break;
-	}
+	}.nextval from dual
 	
 }
 
