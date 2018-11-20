@@ -351,8 +351,9 @@ public class ReceptionistController {
 		
 	private ArrayList<String> get_BSS_for_repair(String repair, String model, String make) {
 		String query = "select Basic_services.service_name from Basic_services"
-		+"join Repairs on Basic_service.BASIC_SERVICE_ID = repairs.BASIC_SERVICE_ID"
+		+" join Repairs on Basic_services.BASIC_SERVICE_ID = repairs.BASIC_SERVICE_ID"
 		+" where model='"+model+"' AND make='"+make+"' AND repair_name='"+repair+"'";
+		System.out.println(query);
 		ArrayList<String> bss = new ArrayList<String>();
 		Statement stmt;
 		try {
