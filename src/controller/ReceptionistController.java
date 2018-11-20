@@ -101,7 +101,9 @@ public class ReceptionistController {
 			case "6": System.out.println("6");
 					break;
 			case "7": System.out.println("7");
+					this.generateinvoice();
 					break;
+			
 			}
 			
 		}
@@ -470,6 +472,7 @@ public class ReceptionistController {
 		System.out.println("Enter customer email address");
 		String email = scanner.nextLine();
 		String customer_id = getcustomerid(email);
+		System.out.println("customer_id :"+customer_id);
 		
 		
 		String query = "SELECT APPOINTMENT.appointment_id, BOOKED.license_plate_number, car.make, car.model,APPOINTMENT.service_type, USERS.name as MechanicName, "
@@ -479,13 +482,15 @@ public class ReceptionistController {
 				+ "		LEFT JOIN USERS ON EMPLOYEE.email = USERS.email "
 				+ "     JOIN CAR ON BOOKED.license_plate_number = CAR.license_plate_number"
 				+ "		JOIN TIMESLOTS ON TIMESLOTS.service_center_id = BOOKED.service_center_id AND TIMESLOTS.start_time = APPOINTMENT.start_time	"
-				+ "		WHERE customer_id = " + customer_id + "and APPOINTMENT.status = completed" ; 
+				+ "		WHERE customer_id = " + customer_id + " and APPOINTMENT.status = 'completed'" ; 
+		
+		System.out.println(query);
 		
 		Statement stmt;
 		try {
 			stmt = DBBuilder.getConnection().createStatement();
 			ResultSet rs = stmt.executeQuery(query);
-			
+			System.out.println("Query sent");
 		    while (rs.next()) {
 		    	HashMap<String,String> Labour_charge = new HashMap<String,String>();
 		    	HashMap<String,String> Part_charge = new HashMap<String,String>();
@@ -521,7 +526,7 @@ public class ReceptionistController {
 		    	System.out.println("D.Licence Plate : "+license_plate);
 		    	System.out.println("E.Service Type: "+service_type);
 		    	System.out.println("F.Mechanic Name: "+mechanic_name);
-		    	
+		    	System.out.println("Getting other info");
 		    	for (String t: BSS_LIST) {
 		    		BSS_DETAILS = get_Bss_details(t,make,model);
 		    		String part_name = BSS_DETAILS.get("part_name");
