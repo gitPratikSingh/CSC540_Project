@@ -83,7 +83,7 @@ public class Car {
 		
 		try {	
 			stmt = DBBuilder.getConnection().createStatement();
-	        System.out.println(sql);
+	        //System.out.println(sql);
 			stmt.executeUpdate(sql);
 		} 
     	catch(Throwable e) {
@@ -112,7 +112,7 @@ public class Car {
 		
 		try {	
 			stmt = DBBuilder.getConnection().createStatement();
-	        System.out.println(sql);
+	        //System.out.println(sql);
 			stmt.executeUpdate(sql);
 		} 
 		catch(Throwable e) {
@@ -129,7 +129,7 @@ public static ResultSet getDetails(String License_plate_number){
 		
 		try {	
 			stmt = DBBuilder.getConnection().createStatement();
-	        System.out.println(sql);
+	        //System.out.println(sql);
 			ResultSet rs = stmt.executeQuery(sql);
 			
 			return rs;

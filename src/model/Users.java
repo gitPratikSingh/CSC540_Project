@@ -25,7 +25,7 @@ public class Users {
 				+name+"','"+address+"','"+phone+"','"+password+"')"
 				;
 				
-		        System.out.println(sql);
+		        //System.out.println(sql);
 				stmt.executeUpdate(sql);
 			} 
 	    	catch(Throwable e) {
@@ -44,7 +44,7 @@ public class Users {
 		
 		try {	
 			stmt = DBBuilder.getConnection().createStatement();
-	        System.out.println(sql);
+	        //System.out.println(sql);
 			stmt.executeUpdate(sql);
 		} 
 		catch(Throwable e) {
@@ -73,7 +73,7 @@ public class Users {
 			
 			try {	
 				stmt = DBBuilder.getConnection().createStatement();
-		        System.out.println(sql);
+		        //System.out.println(sql);
 				stmt.executeUpdate(sql);
 			} 
 			catch(Throwable e) {
@@ -90,7 +90,7 @@ public class Users {
 			
 			try {	
 				stmt = DBBuilder.getConnection().createStatement();
-		        System.out.println(sql);
+		        //System.out.println(sql);
 				stmt.executeUpdate(sql);
 			} 
 	    	catch(Throwable e) {

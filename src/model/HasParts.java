@@ -16,7 +16,7 @@ public class HasParts {
 		
 		try {	
 			stmt = DBBuilder.getConnection().createStatement();
-	        System.out.println(sql);
+	        //System.out.println(sql);
 			stmt.executeUpdate(sql);
 		} 
     	catch(Throwable e) {
@@ -27,24 +27,18 @@ public class HasParts {
 
 	}
 
-	public static void update(int service_center_id, int part_id, 
-			int current_quantity,
-	        int min_quantity_threshold,
-	        int min_order_threshold ) {
+	public static void update(String service_center_id, int part_id, int current_quantity) {
 		
 		Statement stmt = null;
 		
-		
 		String sql =  "Update Has_Parts Set current_quantity = " +current_quantity+
-				", min_quantity_threshold = " +min_quantity_threshold+
-				", min_order_threshold = " +min_order_threshold+
-				"WHERE service_center_id = " +service_center_id
-				+"AND part_id = " + part_id
+				" WHERE service_center_id = '" +service_center_id +"'"
+				+" AND part_id = " + part_id
 				;
 		
 		try {	
 			stmt = DBBuilder.getConnection().createStatement();
-	        System.out.println(sql);
+	        //System.out.println(sql);
 			stmt.executeUpdate(sql);
 		} 
 		catch(Throwable e) {
@@ -69,7 +63,7 @@ public class HasParts {
 					+ min_order_threshold +")"
 					;
 			
-	        System.out.println(sql);
+	       // System.out.println(sql);
 			stmt.executeUpdate(sql);
 		} 
     	catch(Throwable e) {
