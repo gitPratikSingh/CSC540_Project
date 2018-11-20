@@ -61,7 +61,7 @@ public class Appointment {
 			ResultSet rs = stmt.executeQuery(sql);
 			
 			while(rs.next()){
-				preferred_mechanic_id = rs.getInt(0);
+				preferred_mechanic_id = rs.getInt(1);
 			}
 		} 
     	catch(Throwable e) {
