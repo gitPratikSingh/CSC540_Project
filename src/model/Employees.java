@@ -31,7 +31,7 @@ FOREIGN KEY(Email)REFERENCES User
 			+email+"','"+role+"')"
 			;
 			
-	        System.out.println(sql);
+	       // System.out.println(sql);
 			stmt.executeUpdate(sql);
 		} 
     	catch(Throwable e) {
@@ -53,7 +53,7 @@ public static void update(
 	
 	try {	
 		stmt = DBBuilder.getConnection().createStatement();
-        System.out.println(sql);
+        //System.out.println(sql);
 		stmt.executeUpdate(sql);
 	} 
 	catch(Throwable e) {
@@ -69,7 +69,7 @@ public static String delete(int employee_id,String email) {
 		
 		try {	
 			stmt = DBBuilder.getConnection().createStatement();
-	        System.out.println(sql);
+	        //System.out.println(sql);
 			stmt.executeUpdate(sql);
 		} 
     	catch(Throwable e) {

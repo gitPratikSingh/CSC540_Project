@@ -12,6 +12,7 @@ import model.Parts;
 import model.ServiceCenter;
 import model.Timeslots;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -134,8 +135,178 @@ private void serviceMenu() {
 }
 
 private void reScheduleService() {
-	// TODO Auto-generated method stub
+	// Display the following details for all upcoming services for this customer, followed by the menu
+	System.out.print("\n All upcoming services");
 	
+	String query = "SELECT APPOINTMENT.appointment_id, BOOKED.license_plate_number, APPOINTMENT.service_type, USERS.name as MechanicName, "
+			+ "		TIMESLOTS.start_time, TIMESLOTS.end_time, APPOINTMENT.status FROM BOOKED"
+			+ "		JOIN APPOINTMENT ON BOOKED.appointment_id = APPOINTMENT.appointment_id "
+			+ "		LEFT JOIN EMPLOYEE ON EMPLOYEE.employee_id = APPOINTMENT.preferred_mechanic "
+			+ "		LEFT JOIN USERS ON EMPLOYEE.email = USERS.email "
+			+ "		JOIN TIMESLOTS ON TIMESLOTS.service_center_id = BOOKED.service_center_id AND TIMESLOTS.start_time = APPOINTMENT.start_time	"
+			+ "		WHERE APPOINTMENT.status='pending' AND customer_id = " + this.customerId
+			+ " Order by APPOINTMENT.appointment_id desc"; 
+	
+	
+	
+	Statement stmt;
+	String customerid = "";
+	try {
+		stmt = DBBuilder.getConnection().createStatement();
+		ResultSet rs = stmt.executeQuery(query);
+		
+		System.out.println("ServiceID"
+				+ "		LicensePlate"
+				+ "		ServiceType"
+				+ "		MechanicName"
+				+ "		ServiceStart Time"
+				+ "		Service End Time");
+	    
+	    while (rs.next()) {
+	       System.out.println(rs.getString("APPOINTMENT_ID")+"		"
+	    		   +rs.getString("LICENSE_PLATE_NUMBER")+"		"
+	    		   +rs.getString("SERVICE_TYPE")+"		"
+	    		   +rs.getString("MECHANICNAME")+"		"
+	    		   +rs.getString("START_TIME")+"		"
+	    		   +rs.getString("END_TIME")+"		");
+	    }
+	    
+	} catch (SQLException e) {
+		e.printStackTrace();
+	}
+	
+	System.out.print("\n1. Pick a service 2. Go Back");
+	
+	switch (checkNumericalInput(1, 2)) {
+	case -1:
+		reScheduleService();
+		break;
+	case 1:
+		System.out.print("\nEnter the service Id\n");
+		try{
+			int serviceId = scanner.nextInt();
+			reScheduleService(serviceId);
+			
+		}catch(Exception e){
+			System.out.print("\nPlease enter a correct service Id\n");
+			reScheduleService();
+		}
+		break;
+	case 2:
+		serviceMenu();
+		break;
+	default:
+		break;
+	}
+	
+}
+
+private void reScheduleService(int serviceId) {
+	// find two earliest available maintenance/repair dates that are at least one day after the current service date
+	Timestamp[] availableTimeslots = null;
+	// if serviceType = 'A'/'B'/'C'
+	String sql =  "Select APPOINTMENT.START_TIME from APPOINTMENT WHERE APPOINTMENT.appointment_id = "+ serviceId;
+	Timestamp ts = null;	
+	try {	
+		Statement stmt = DBBuilder.getConnection().createStatement();
+        System.out.println(sql);
+		ResultSet rs = stmt.executeQuery(sql);
+		
+		while(rs.next()){
+			ts = rs.getTimestamp(1);
+		}
+	} 
+	catch(Throwable e) {
+        e.printStackTrace();
+    }
+	
+	sql =  "Select BOOKED.License_Plate_Number, BOOKED.SERVICE_CENTER_ID from BOOKED WHERE BOOKED.appointment_id = "+ serviceId;
+	String licensePlateNumber = "", service_center_id = "";
+	try {	
+		Statement stmt = DBBuilder.getConnection().createStatement();
+        System.out.println(sql);
+		ResultSet rs = stmt.executeQuery(sql);
+		
+		while(rs.next()){
+			licensePlateNumber = rs.getString(1);
+			service_center_id = rs.getString(2);
+		}
+	} 
+	catch(Throwable e) {
+        e.printStackTrace();
+    }
+	
+	Timestamp te = Timeslots.getEndTime(service_center_id, ts);
+	String status = Timeslots.getStatus(service_center_id, ts);
+	
+	Timestamp nts1 = new Timestamp(0);
+	Timestamp nte1 = new Timestamp(0);
+	
+	nts1.setTime(ts.getTime() + (((24 * 60 * 60))* 1000));
+	nte1.setTime(te.getTime() + (((24 * 60 * 60))* 1000));
+	
+	Timestamp nts2 = new Timestamp(0);
+	Timestamp nte2 = new Timestamp(0);
+	
+	nts2.setTime(nts1.getTime() + (((1 * 60))* 1000));
+	nte2.setTime(nte1.getTime() + (((1 * 60))* 1000));
+	
+	System.out.println("Available on the folloing date and time");
+	DateFormat format = new SimpleDateFormat( "yyyy-dd-MM h:mm a" );
+	String str1 = format.format( nts1 );
+	String str2 = format.format( nts2 );
+	
+	System.out.println(str1);
+	System.out.println(str2);
+	
+	System.out.println("Select 1 for the first date, 2 for the last date\n");
+	
+	switch (checkNumericalInput(1, 2)) {
+	case 1:
+		Timeslots.create(service_center_id, nts1, nte1, status);
+		
+		PreparedStatement cursor;
+		try {
+			cursor = DBBuilder.getConnection()
+					.prepareStatement("UPDATE APPOINTMENT SET START_TIME = ? WHERE appointment_id = ?");	
+			
+			 cursor.setInt(2, serviceId);
+			 cursor.setTimestamp(1, nts1);
+			 cursor.executeUpdate();
+			 
+			 ///System.out.println("Service reschduled!");
+
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		break;
+	case 2:
+		Timeslots.create(service_center_id, nts2, nte2, status);
+		
+		PreparedStatement cursor1;
+		try {
+			cursor1 = DBBuilder.getConnection()
+					.prepareStatement("UPDATE APPOINTMENT SET START_TIME = ? WHERE appointment_id = ?");	
+			
+			 cursor1.setInt(2, serviceId);
+			 cursor1.setTimestamp(1, nts2);
+			 cursor1.executeUpdate();
+
+			 //System.out.println("Service reschduled!");
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		break;
+	case -1:
+		reScheduleService(serviceId);
+		break;
+	default:
+		break;
+	}
+	
+	serviceMenu();
 }
 
 private void scheduleService() {
@@ -212,7 +383,7 @@ private void scheduleRepair(String lplate, int mileage, String mname) {
 		scheduleRepairType("Check engine", lplate, mileage, mname);
 		break;
 	case 8:
-		scheduleService();
+		serviceMenu();
 		break;
 	default:
 		break;
@@ -266,7 +437,6 @@ private void scheduleRepairType(String repairName, String lplate, int mileage, S
 	Timestamp[] Timestamps = null;
 	ArrayList<String> list = new ArrayList<>();
 
-	System.out.print(repairName);
 	
 	if(repairName.equalsIgnoreCase("Engine knock")){
 		daignosticReport = "\n Diagnostic Report\n Caused By: ​​Timing issue\n Parts needed to be changed are: ​​Drive belt replacement, Spark plugs replacement, Camshaft replacement, Valve replacement";
@@ -365,7 +535,40 @@ private void scheduleTheRepairDate(String lplate, Timestamp start_time,Timestamp
 	Booked.create(customerId, service_center, app_id, lplate);
 	
 	// remove the parts from the inventory
-	// todo in task
+	
+	int part_id = 0, current_quantity = 0;
+	
+	// once the servicetype is decided, find the parts, quantity, and time info
+	String newOrderQuery = "SELECT HAS_PARTS.part_id, HAS_PARTS.min_quantity_threshold, HAS_PARTS.min_order_threshold" + 
+			" FROM BASIC_SERVICES" +
+			" JOIN PARTS ON BASIC_SERVICES.part_name = PARTS.part_name" +
+			" JOIN HAS_PARTS ON HAS_PARTS.part_id = PARTS.part_id AND HAS_PARTS.service_center_id = '" + service_center +"'"+
+			" WHERE BASIC_SERVICES.make= '"+ ServiceCenter.serviceMake +
+			"' AND BASIC_SERVICES.model= '" + ServiceCenter.serviceModel+
+			"' AND HAS_PARTS.current_quantity < BASIC_SERVICES.quantiy"
+			+ " AND BASIC_SERVICES.SERVICE_NAME IN("+ServiceCenter.partsRequired+")";
+		
+		
+		// see if the parts are available
+		boolean partsNotFoundInInventory = false;
+		try {
+			Statement stmt = DBBuilder.getConnection().createStatement();
+	        //System.out.println(newOrderQuery);
+	        ResultSet rs = stmt.executeQuery(newOrderQuery);
+	        while (rs.next()) {
+	 	       int partId = rs.getInt("PART_ID");
+	 	       int quantiy = rs.getInt("quantiy");
+	 	       current_quantity = rs.getInt("current_quantity");
+	 	       HasParts.update(service_center, partId, current_quantity - quantiy);
+	 	       // order missing parts if no previous orders found!
+	 	       // todo
+	 	    }
+		} 
+		catch(Throwable e) {
+	        e.printStackTrace();
+	    }
+	
+	HasParts.update(service_center, part_id, current_quantity);
 	
 	DateFormat format = new SimpleDateFormat( "yyyy-mm-dd h:mm a" );
 	String str = format.format( start_time );
@@ -396,7 +599,7 @@ private void scheduleMaintenance(String lplate, int mileage, String mname) {
 		findNextAvailableTwoServiceDates(lplate, mileage, mname);
 		break;
 	case 2:
-		scheduleService();
+		serviceMenu();
 		break;
 	default:
 		break;
@@ -478,6 +681,36 @@ private void scheduleTheDate(String lplate, String service_center, Timestamp sta
 	
 	// remove the parts from the inventory
 	// todo in task
+	
+	// once the servicetype is decided, find the parts, quantity, and time info
+	String newOrderQuery = "SELECT HAS_PARTS.part_id, BASIC_SERVICES.quantiy, HAS_PARTS.current_quantity" + 
+	" FROM BASIC_SERVICES" +
+	" JOIN PARTS ON BASIC_SERVICES.part_name = PARTS.part_name" +
+	" JOIN HAS_PARTS ON HAS_PARTS.part_id = PARTS.part_id AND HAS_PARTS.service_center_id = '" + service_center +"'"+
+	" WHERE BASIC_SERVICES.make= '"+ ServiceCenter.serviceMake +
+	"' AND BASIC_SERVICES.model= '" +  ServiceCenter.serviceModel+
+	"' AND BASIC_SERVICES.service_type = '" + ServiceCenter.serviceNeeded;
+	
+	
+	// see if the parts are available
+	boolean partsNotFoundInInventory = false;
+	try {
+		Statement stmt = DBBuilder.getConnection().createStatement();
+        //System.out.println(newOrderQuery);
+        ResultSet rs = stmt.executeQuery(newOrderQuery);
+        while (rs.next()) {
+ 	       int partId = rs.getInt("PART_ID");
+ 	       int quantiy = rs.getInt("quantiy");
+ 	       int current_quantity = rs.getInt("current_quantity");
+ 	       HasParts.update(service_center, partId, current_quantity-quantiy);
+ 	       
+ 	       // order missing parts if no previous orders found!
+ 	       // todo
+ 	    }
+	} 
+	catch(Throwable e) {
+        e.printStackTrace();
+    }
 	
 	DateFormat format = new SimpleDateFormat( "yyyy-mm-dd h:mm a" );
 	String str = format.format( start_time );

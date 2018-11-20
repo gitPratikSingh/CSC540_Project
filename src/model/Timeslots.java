@@ -28,6 +28,52 @@ public class Timeslots {
 	 * 
 	 * */
 	
+	public static Timestamp getEndTime(String service_center_id, Timestamp start_time){
+		
+		PreparedStatement cursor;
+		try {
+			cursor = DBBuilder.getConnection()
+					.prepareStatement("SELECT Timeslots.END_TIME FROM Timeslots WHERE SERVICE_CENTER_ID = ? AND START_TIME = ?");
+			
+			 cursor.setString(1, service_center_id);
+			 cursor.setTimestamp(2, start_time);
+			 ResultSet rs = cursor.executeQuery();
+			 
+			 while(rs.next()){
+				 return rs.getTimestamp(1);
+			 }
+ 
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
+public static String getStatus(String service_center_id, Timestamp start_time){
+		
+		PreparedStatement cursor;
+		try {
+			cursor = DBBuilder.getConnection()
+					.prepareStatement("SELECT Timeslots.STATUS FROM Timeslots WHERE SERVICE_CENTER_ID = ? AND START_TIME = ?");
+			
+			 cursor.setString(1, service_center_id);
+			 cursor.setTimestamp(2, start_time);
+			 ResultSet rs = cursor.executeQuery();
+			 
+			 while(rs.next()){
+				 return rs.getString(1);
+			 }
+ 
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
 public static void create(String service_center_id, Timestamp start_time, Timestamp end_time, String status) {
 				
 		PreparedStatement cursor;
