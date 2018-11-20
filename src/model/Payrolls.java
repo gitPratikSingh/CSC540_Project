@@ -1,5 +1,6 @@
 package model;
 
+import java.sql.ResultSet;
 import java.sql.Statement;
 
 import db.DBBuilder;
@@ -11,6 +12,9 @@ Payroll_ID​​ Varchar(50)
 Payroll_type Varchar(50)
 PRIMARY KEY(Payroll_ID))
 	 */
+	
+	
+
 	
 	public static void create(
 			int payroll_id, 

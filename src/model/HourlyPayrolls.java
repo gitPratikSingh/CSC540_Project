@@ -17,8 +17,8 @@ FOREIGN KEY(Payroll_ID) references Payroll
 	
 	public static void create(
 			int payroll_id, 
-			float per_hourly_wage,
-			int total_hours_per_month
+			int per_hourly_wage,   //actually total hours per month
+			float total_hours_per_month //actually per hourly wage
 			)
 	{
 		

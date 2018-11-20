@@ -21,14 +21,17 @@ FOREIGN KEY(Email)REFERENCES User
 	public static void create(
 			int employee_id,
 			String email,
-			String role)
+			String role,
+			String Start_date)
 	{
+		
+		String Pay ;
 		
 		Statement stmt = null;
 		try {	
 			stmt = DBBuilder.getConnection().createStatement();
-			String sql = "INSERT INTO "+TableName+" VALUES ("+employee_id+",'"
-			+email+"','"+role+"')"
+			String sql = "INSERT INTO "+TableName+" (EMPLOYEE_ID,EMAIL,ROLE,START_DATE)"+" VALUES ("+employee_id+",'"
+			+email+"','"+role+"',TO_DATE('"+Start_date+"', 'DD/MM/YYYY'))"
 			;
 			
 	       // System.out.println(sql);

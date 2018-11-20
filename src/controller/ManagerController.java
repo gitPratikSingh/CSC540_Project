@@ -37,10 +37,7 @@ public class ManagerController {
 		ManagerSid = service_center_id;
 		ManagerEmployeeId=employee_id;
 		ManagerEmailId=email;	
-	
-	}
-	
-	
+	}	
 	public static void defaultPage()
 	{
 		while(true){
@@ -61,6 +58,7 @@ public class ManagerController {
 		
 		//take input from the user 
 		int n = reader.nextInt();
+		String dummy=reader.nextLine();
 		switch (n)
 		{
 		case 1:
@@ -71,14 +69,15 @@ public class ManagerController {
 		
 			break;
 		case 3:
-			addNewEmployee();
+			
+			addNewEmployee(); //done 
 		
 			break;
 		case 4:
-			payRoll();
+			payRoll(); //
 			break;
 		case 5:
-			inventory();
+			inventory(); //done
 		
 			break;
 		case 6:
@@ -120,11 +119,9 @@ public class ManagerController {
 	{
 		System.out.println("Enter Customer ID");
 		int customer_id = reader.nextInt();
-		
 		//retrieve the customer details"
 		
 		System.out.println("1.Go back");
-		
 		int n = reader.nextInt();
 		if (n==1)
 		{
@@ -194,9 +191,9 @@ public class ManagerController {
 	public static void carServiceDetails()
 	{
 		System.out.println("Car Service Details ");
-		//dislay all cars with details of service 
+		//display all cars with details of service 
 		/*
-
+system.out.print(
 Make
 Model
 Year
@@ -213,8 +210,56 @@ F. Service C
 a. Miles
 b. Months
 c. Additional
-Parts
-		 */
+Parts*/
+		
+		String query_for_services = "SELECT * FROM SUPPORTED_SERVICES"; 
+	
+		Statement stmt;
+		ResultSet rs1, rs2;
+	
+		try {
+			stmt = DBBuilder.getConnection().createStatement();
+			
+			rs1= stmt.executeQuery(query_for_services);
+			
+			while(rs1.next()) {
+			
+				
+			System.out.println("A.MAKE ="+rs1.getString("MAKE"));
+			System.out.println("B.Model ="+rs1.getString("MODEL"));
+			System.out.println("C.Service Type = "+rs1.getString("SERVICE_TYPE"));
+			System.out.println(" a.Miles ="+rs1.getInt("MILES"));
+			System.out.println(" b.Months = "+rs1.getInt("MONTH"));
+			System.out.println(" e Parts List =");
+			
+			String query_for_parts= "SELECT PART_ID FROM REQUIRED_PARTS"
+					+ " WHERE REQUIRED_PARTS.MAKE = "+rs1.getString("MAKE")
+					+ " AND REQUIRED_PARTS.MODEL = " +rs1.getString("MODEL")
+					+ " AND REQUIRED_PARTS.SERVICE = "+rs1.getString("SERVICE_TYPE");
+			
+			System.out.println(query_for_parts);
+			
+			rs2= stmt.executeQuery(query_for_parts);
+			//get the result of the query 
+		  int k =0;
+			while (rs2.next()) {
+				k++;
+				System.out.println(+k+")"+rs2.getInt("PART_ID"));
+				
+			    		  
+			    }
+			k=0;
+			
+			}
+			}catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		
+		
+		System.out.println("Make : ");
+		
+		
 		
 		System.out.println("1.Go Back");
 		int n = reader.nextInt();
@@ -222,32 +267,15 @@ Parts
 		//return if 1. 
 		if(n==1)
 			return;
-		
-		
 	}
 	
 	public static void newCarModel()
 	{
 		System.out.println("New Car Model");
-/*
-		Make
-		Model
-		Year
-		Service A:
-		a. Miles
-		b. Months
-		c. Parts List
-		E. Service B
-		a. Miles
-		b. Months
-		c. Additional
-		Parts
-		F. Service C
-		a. Miles
-		b. Months
-		c. Additional
-		Parts
-	*/	
+        /*
+		Make Model Year Service A: a. Miles b. Months c. Parts List E. Service B a. Miles b. Months c. Additional
+        Parts F. Service C a. Miles b. Months c. Additional Parts
+	    */	
 		System.out.println("Enter the Car Make (nissan honda or )");
 		String car_make = reader.nextLine();
 		
@@ -257,39 +285,99 @@ Parts
 		System.out.println("Enter the year ");
 		int car_year = reader.nextInt();
 		
+		String consume=reader.nextLine();
+		
 		System.out.println("Enter the Service type (service_a,service_b or service_c");
 	    String car_service_type = reader.nextLine();
 	    
+	    System.out.println("a. Miles");
+	    int car_miles = reader.nextInt();
+	    consume = reader.nextLine();
+	    
+	    System.out.println("b. Months");
+	    String car_months = reader.nextLine();
+	    
+	    System.out.println("c1. Enter the number of parts");
+	    int num_of_parts =reader.nextInt();
+	    
+	    
+	    car_make = "'"+car_make+"'";
+	    car_model = "'"+car_model+"'";
+	    car_service_type= "'"+car_service_type+"'";
 	    
 	    System.out.println("enter the list of part IDs ");
-	    int part_ids[] = null; 
-	    int count=0;
+	    int part_ids[] =new int[num_of_parts]; 
+	
+	   Statement stmt;
+	    
+	    
+	    for(int i =0 ; i< num_of_parts; i++)
+	    {
+	    	part_ids[i] =reader.nextInt();
+	    }	    
+       /*
 	    while (true) {
 	    	
 	    part_ids[count]= reader.nextInt();
-	    
-        
+ 
 	    System.out.println("Enter another part ID, press -1 to quit ");
 	    if (part_ids[count]==-1)
 	    	break;
 	    count++;
 	    }
+	    */
 	    System.out.println("printing the list of parts");
-	    for(int i=0; i<count;i++)
+	    for(int i=0; i<num_of_parts;i++)
 	    {
 	    	System.out.println(part_ids[i]);
 	    }
 	    
-		
+	
+	    
 		System.out.println("1.Add Car");
 		System.out.println("2.Go Backn");
 		int n = reader.nextInt();
+		
+	   
+		String query1="INSERT INTO SUPPORTED_SERVICES(MAKE, MODEL, SERVICE_TYPE, YEAR,MONTH, MILES) VALUES("
+				+car_make+","
+				+car_model+","
+				+car_service_type+","
+				+car_year+","
+				+car_months+","
+				+car_miles +")";
+	
+			
 		if(n==1)
 		{
 			System.out.println("Adding the car");
 		   //create the part list models etc complex method dddd__________________
-			
-			
+
+			try {	
+				stmt = DBBuilder.getConnection().createStatement();
+		        System.out.println(query1);
+				stmt.executeUpdate(query1);
+				
+				for( int i=0; i<num_of_parts; i++) 
+				{
+					
+				System.out.println("INSERT INTO REQUIRED_PARTS(SERVICE_CENTER_ID, MAKE, MODEL, SERVICE_TYPE, PART_ID) VALUES ('"
+						+ManagerSid+"',"
+						+car_make+","
+						+car_model+","
+						+car_service_type+","
+						+part_ids[i] +")");
+				stmt.executeUpdate("INSERT INTO REQUIRED_PARTS(SERVICE_CENTER_ID, MAKE, MODEL, SERVICE_TYPE, PART_ID) VALUES ('"
+						+ManagerSid+"',"
+						+car_make+","
+						+car_model+","
+						+car_service_type+","
+						+part_ids[i]+")");
+				}
+			} 
+			catch(Throwable e) {
+		        e.printStackTrace();
+		    }	
 			
 			System.out.println("car added successfully");
 			//
@@ -301,9 +389,7 @@ Parts
 		}
 		
 	}
-	
-	
-	
+
 	public static void orders()
 	{
 		while(true) {
@@ -327,17 +413,42 @@ Parts
 	  }
 	}
 	public static void orderHistory()
-	{/*display these 
-		Order ID
-		Date
-		Part Name
-		Supplier Name
-		Purchaser Name
-		Quantity
-		Unit Price
-		Total Cost
-		Order Status
+	{/*display these  Order ID Date Part Name Supplier Name Purchaser Name Quantity Unit Price Total Cost Order Status
 		*/
+		Statement stmt;
+		ResultSet rs ;
+		String query = "SELECT ORDER_ID, ORDER_DATE, PART_NAME,SERVICE_CENTER_ID, QUANTITY, UNIT_PRICE ,STATUS FROM ORDERS"
+				+ "     JOIN PARTS ON PARTS.PART_ID = ORDERS.PART_ID WHERE SERVICE_CENTER_ID = '"+ManagerSid+"'";
+	
+		//System.out.println(query);
+		
+		System.out.println("ORDER_ID,  ORDER_DATE        , PART_NAME, SUPPLIER_ID, PURCHASER_NAME/ID,QUANTITY, UNIT_PRICE , TOTAL COST , STATUS");   
+		try {
+		stmt = DBBuilder.getConnection().createStatement();
+		
+		rs= stmt.executeQuery(query);
+		//get the result of the query 
+	  
+		while (rs.next()) {
+			String status=rs.getString("STATUS");
+			 String[] split_status=status.split(":");
+			
+		       System.out.println(
+		    		    rs.getInt("ORDER_ID")+"   "
+		    		   +rs.getString("ORDER_DATE")+"		"
+		    		   +rs.getString("PART_NAME")+"    "
+		    		   +split_status[1]+"     "
+		    		   +rs.getString("SERVICE_CENTER_ID")+"		"
+		    		   +rs.getInt("QUANTITY")+"      "
+		    		   +rs.getFloat("UNIT_PRICE")+"    "
+		    		   +rs.getFloat("UNIT_PRICE")*rs.getInt("QUANTITY")+"    "
+		    		   +split_status[0]+"		");
+		    }
+		
+		}catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		//provide option to go back
 		System.out.println("1.Go Back");
 		
@@ -359,7 +470,7 @@ Parts
 			System.out.println("Quantity");
 			int quantity = reader.nextInt();
 			
-			//other variable for the autopopulate 
+			//other variable for the auto populate 
 			String distributor_id=null;
 			int delivery_window = -1;
 		
@@ -368,28 +479,40 @@ Parts
 			
 			+" WHERE PART_ID = "+part_id+" AND DELIVERY_WINDOW IS NOT NULL";
 			
+			
+			
 			ResultSet rs;
 			Statement stmt;
 			try {
 				stmt = DBBuilder.getConnection().createStatement();
 			
 				rs= stmt.executeQuery(query);
-				rs.next();
+				if(rs.next()) {
 				distributor_id =rs.getString("DISTRIBUTOR_ID");
-			
+				
 				delivery_window =rs.getInt("DELIVERY_WINDOW");
 				//get the result of the query 
-				
+				   }
 			    }
 			 catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			
+			String service_id= ManagerHelper.serviceCenter(part_id, ManagerSid);
+			if(!(service_id.equals(" ")))
+			{
+				distributor_id = service_id;
+				delivery_window =1;
+			}
+			
+			 
 			System.out.println("selecting distributor "+ distributor_id+" delivery window = "+delivery_window);
 			
 			
-			
+			if (delivery_window ==-1)
+				{System.out.println(" did not find any option to buy the parts ");
+			 return;}
 			/*Details such as cost, order date, etc. should be automatically calculated and
  			the order status must be set as “pending”.After placing the
 			order, show a confirmation message with the order ID*/
@@ -402,7 +525,9 @@ Parts
 	
 			String status = "pending:"+ distributor_id;
 			Timestamp order_date= ManagerHelper.getCurrentTimestamp();
-		
+			
+			Timestamp arrival_date = ManagerHelper.addDate(order_date, delivery_window);
+			status = status+":"+arrival_date.toString();
 	
 			if (n==1)
 			{
@@ -421,7 +546,9 @@ Parts
 			//function to calculate estimated date   
 	}
 	
+
 	public static void notification()
+
 	{
 		while(true) {
 		//display these 
@@ -442,6 +569,8 @@ Parts
 		*/
 		
 		//while(true) {
+		
+		System.out.println("A.Notification ID, Notification Time, Order ID, Supplier Name, Expected Delivery,delayed by days");
 		
 		System.out.println("1.Order ID");
 		System.out.println("2.Go Back");
@@ -517,25 +646,13 @@ Parts
 	
 	public static void inventory()
 	{	
-		//get inventory details by query
-	    /*
-		Part ID
-		Part Name
-		Quantity
-		Unit Price
-		Minimum
-		Quantity
-		Threshold
-		F. Minimum Order
-		Threshold
-		*/
-		//display each of the parts in the inventory
+
 		System.out.println("Inventory details");
 		System.out.println("Part ID  Part_Name Quantity Unit_price Minimum_quantity Threshold_Minimim_order");
 	
 		
 		String query ="SELECT HAS_PARTS.PART_ID, PARTS.PART_NAME, HAS_PARTS.CURRENT_QUANTITY,"
-				+ "	HAS_PARTS.MIN_QUANTITY_THRESHOLD, HAS_PARTS.MIN_ORDER_THRESHOLD FROM HAS_PARTS "
+				+ "PARTS.UNIT_PRICE, HAS_PARTS.MIN_QUANTITY_THRESHOLD, HAS_PARTS.MIN_ORDER_THRESHOLD FROM HAS_PARTS "
 				+ "JOIN PARTS ON HAS_PARTS.PART_ID = PARTS.PART_ID "
 				+ "WHERE SERVICE_CENTER_ID = '"+ManagerSid+"'";
 		
@@ -555,6 +672,7 @@ Parts
 		       System.out.println(rs.getString("PART_ID")+"		"
 		    		   +rs.getString("PART_NAME")+"		"
 		    		   +rs.getString("CURRENT_QUANTITY")+"		"
+		    		   +rs.getFloat ("UNIT_PRICE")+"      "
 		    		   +rs.getString("MIN_QUANTITY_THRESHOLD")+"		"
 		    		   +rs.getString("MIN_ORDER_THRESHOLD")+"		");
 		    }
@@ -578,26 +696,101 @@ Parts
 		/*A.Paycheck date,Pay period,Employee ID,Employee Name,Compensation ($)
 Compensation,Frequency,(monthly/hourly), Units (# of,hours/days),Earnings
 (Current),Earnings(Year-to-date)*/
-		
-		
-		
 		System.out.println("Please enter Employee ID");
 		int employee_id =reader.nextInt();
 		
 		//get the details of payroll for the employee 
-		
 		//format the output
+		
+		Statement stmt;
+		ResultSet rs ;
+		String payroll_type = null;
 		System.out.println("Pay roll details of employee ");
-		System.out.println("Paycheck date  Pay_period  Employee_id  Employee_name, compensation");
+
+		try {
+			stmt = DBBuilder.getConnection().createStatement();
+		
+		rs= stmt.executeQuery("SELECT PAYROLL_TYPE FROM PAYROLL"
+				+" JOIN HAS_PAY ON HAS_PAY.PAYROLL_ID=PAYROLL.PAYROLL_ID"
+				+" WHERE EMPLOYEE_ID ='"+employee_id+"'");
+		//get the result of the query 
+	  
+	   if(rs.next()) {
+		     payroll_type=rs.getString("PAYROLL_TYPE");
+		   }
+		
+		}catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		if (payroll_type.equals(Constants.HOURLY_PAYROLL))
+	{
+		String query ="SELECT * FROM(SELECT HAS_PAY.EMPLOYEE_ID, PAYROLL.PAYROLL_ID, PAYROLL.PAYROLL_TYPE, HOURLY_PAYROLL.TOTAL_HOURS_PER_MONTH, HOURLY_PAYROLL.PER_HOUR_WAGE, "  
+				+" HOURLY_PAYROLL.TOTAL_HOURS_PER_MONTH*hourly_payroll.per_hour_wage AS MONTHLY_WAGE \n" 
+				+" FROM HAS_PAY "  
+				+" JOIN PAYROLL ON HAS_PAY.PAYROLL_ID= PAYROLL.PAYROLL_ID" 
+				+" JOIN HOURLY_PAYROLL ON PAYROLL.PAYROLL_ID =HOURLY_PAYROLL.PAYROLL_ID" 
+				+" WHERE EMPLOYEE_ID = '"+employee_id+"') A " 
+				+" ORDER BY A.payroll_id DESC";	
+		System.out.println(query); //debug query
+		System.out.println("Paycheck date  Pay_period  Employee_id  Employee_name, compensation, compensation frequency,Hours/days, current earnings, year to end earnings");
+		try {
+			stmt = DBBuilder.getConnection().createStatement();
+		rs= stmt.executeQuery(query);
+		//get the result of the query 
+	  
+	   if(rs.next()) {
+		       System.out.println(rs.getInt("EMPLOYEE_ID")+"		"
+		    		   +rs.getInt("PAYROLL_ID")+"		"
+		    		   +rs.getString("PAYROLL_TYPE")+"		"
+		    		   +rs.getString("TOTAL_HOURS_PER_MONTH")+"		"
+		    		   +rs.getString("PER_HOUR_WAGE")+"		"
+		       	       +rs.getString("MONTHLY_WAGE"));
+		   }
+		   
+		}catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}	else if(payroll_type.equals(Constants.MONTHLY_PAYROLL)) {
+		
+		String query = "SELECT * FROM(SELECT HAS_PAY.EMPLOYEE_ID, PAYROLL.PAYROLL_ID, PAYROLL.PAYROLL_TYPE, MONTHLY_PAYROLL.MONTH, MONTHLY_PAYROLL.MONTHLY_SALARY"
+		+" FROM HAS_PAY" 
+		+" JOIN PAYROLL ON HAS_PAY.PAYROLL_ID= PAYROLL.PAYROLL_ID"
+		+" JOIN MONTHLY_PAYROLL ON PAYROLL.PAYROLL_ID =MONTHLY_PAYROLL.PAYROLL_ID"
+		+" WHERE EMPLOYEE_ID = '176338362') A"
+		+" ORDER BY A.payroll_id DESC";
 		
 		
+		System.out.println(query); //debug query
+		System.out.println("Paycheck date  Pay_period  Employee_id  Employee_name, compensation, compensation frequency,Hours/days, current earnings");
+			try {
+			stmt = DBBuilder.getConnection().createStatement();
+		    rs= stmt.executeQuery(query);
+		//get the result of the query 
+	  
+	   if(rs.next()) {
+		       System.out.println(rs.getInt("EMPLOYEE_ID")+"		"
+		    		   +rs.getInt("PAYROLL_ID")+"		"
+		    		   +rs.getString("PAYROLL_TYPE")+"		"
+		    		   +rs.getString("MONTH")+"		"
+		    		   +rs.getString("MONTHLY_SALARY"));
+		   }
+		   
+		}catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
 		System.out.println("1.GoBack");
 		int n = reader.nextInt();
 		
 		if (n==1)
 			return;
-	
-		//System.out.println(x);
+
 	}
 	
 	public static void addNewEmployee()
@@ -607,11 +800,12 @@ Compensation,Frequency,(monthly/hourly), Units (# of,hours/days),Earnings
 		    String password = "12345678";
 		
 		    System.out.println("Employee ID is generated as "+employee_id);
-		 	System.out.println("His default password is 12345678");
+		 	System.out.println("Default password is 12345678 ");
 		    System.out.println("Please enter the remaining credential");
 		 
 			//read input from manager for creating employee
 			
+		    
 			System.out.println("A.Name: ");
 			String name = reader.nextLine();
 		
@@ -626,6 +820,7 @@ Compensation,Frequency,(monthly/hourly), Units (# of,hours/days),Earnings
 			
 			System.out.println("E.Role");
 			String role=reader.nextLine();
+			System.out.println(role+"this");
 			
 			System.out.println("F.Start Date in format mm/dd/yyyy");
 			String start_date=reader.nextLine();
@@ -639,50 +834,61 @@ Compensation,Frequency,(monthly/hourly), Units (# of,hours/days),Earnings
 			
 			
 			String start_month="january";
-			int payroll_id = 500;
+			int payroll_id = ManagerHelper.getNextPayrollId();
+			System.out.println(payroll_id);
 			int n = reader.nextInt();
 			if (n==1) { 
 		    // check if role matches
-			if(ManagerHelper.isValidRole(role)) {
+			if(role.equals("receptionist") ||role.equals("mechanic")) {
 				
 			//Debug- need to add exception for wrong credential
 			
-			if(role=="receptionist")
+			if(role.equals("receptionist"))
 			{
+				if( ManagerHelper.isReceptionistPresent(ManagerSid))
+				{	
+					System.out.println("You already have a receptionist");
+					return;
+				}		
+			}
+	
+			if(role.equals("receptionist"))
+			{     
 				
 				Users.create(email_address, name, address, phone_number, password);
-				Employees.create(employee_id, email_address, Constants.RECEPTIONIST);
-				Payrolls.create(payroll_id, Constants.MONTHLY_PAYROLL);
-				//need to iterate the months for aggrigate bill 
 				
+				Employees.create(employee_id, email_address, Constants.RECEPTIONIST,start_date);
+						
+				Payrolls.create(payroll_id, Constants.MONTHLY_PAYROLL);
+		
 				MonthlyPayrolls.create(payroll_id, start_month, compensation);
-				hasPay.create(payroll_id, employee_id);
-				//add check if receptionist is already there for the service centre ???
+				
+				hasPay.create(employee_id,payroll_id );
 				
 				HasReceptionist.create(ManagerSid, employee_id);
 				
 			}
-			else if(role=="mechanic")
-			{
+			else if(role.equals("mechanic"))
+				{
 			
 				Users.create(email_address, name, address, phone_number, password);
-				Employees.create(employee_id, email_address, Constants.MECHANIC);
+			
+				Employees.create(employee_id, email_address, Constants.MECHANIC,start_date);
+				
 				Payrolls.create(payroll_id, Constants.HOURLY_PAYROLL);
 				
-				//add check if receptionist is already there for the service centre ???
-				HourlyPayrolls.create(payroll_id, compensation,0 ); 
-				hasPay.create(payroll_id, employee_id);
+				HourlyPayrolls.create(payroll_id,0, compensation ); 
+				
+				hasPay.create( employee_id,payroll_id);
 				
 				HasMechanic.create(ManagerSid, employee_id);
-				
 				//run compensation till date with paycheck date.
-			}
+				}
 					
-			System.out.println( "employee is created with ID"+employee_id);
+			System.out.println( "employee is created with ID :"+employee_id);
 			}
 			else 
-			{
-				
+			{	
 				System.out.println("Invalid Role");
 			}
 			//go back to landing page 
@@ -695,15 +901,10 @@ Compensation,Frequency,(monthly/hourly), Units (# of,hours/days),Earnings
 		}
 	}		
 	
-
-
 	public static void viewProfile()
 	{
 		//display the current profile 
-		
 		//employee ID, phone number Email address, compensation, service centre 
-		
-		
 		while(true) {
 		System.out.println("1.Edit My profile");
 		System.out.println("2.Go Back");
