@@ -56,7 +56,7 @@ public static void create(String service_center_id, Timestamp start_time, Timest
 		
 		try {	
 			stmt = DBBuilder.getConnection().createStatement();
-	        System.out.println(sql);
+	        //System.out.println(sql);
 			stmt.executeUpdate(sql);
 		}
     	catch(Throwable e) {
@@ -78,7 +78,7 @@ public static void create(String service_center_id, Timestamp start_time, Timest
 		
 		try {	
 			stmt = DBBuilder.getConnection().createStatement();
-	        System.out.println(sql);
+	        //System.out.println(sql);
 			stmt.executeUpdate(sql);
 		} 
 		catch(Throwable e) {
@@ -88,13 +88,13 @@ public static void create(String service_center_id, Timestamp start_time, Timest
 
 	public static Timestamp[] findTwoAvailableSlots(String service_center_id, int serviceTimeMins) {
 		
-		String query = "SELECT MAX(tm1.end_time) as lastBookedSlot FROM timeslots tm1 WHERE tm1.status = 'booked' AND service_center_id = "+"'"+service_center_id+"'";
+		String query = "SELECT MAX(tm1.end_time) as lastBookedSlot FROM timeslots tm1 WHERE service_center_id = "+"'"+service_center_id+"'";
 		// 1 slot from lastBookedSlot+1 to lastBookedSlot + serviceTime
 		// 2 slot from lastBookedSlot + serviceTime +1, to lastBookedSlot + serviceTime + serviceTime
 		Timestamp lastBookedSlot = null;
 		try {	
 			Statement stmt = DBBuilder.getConnection().createStatement();
-	        System.out.println(query);
+	        //System.out.println(query);
 	        ResultSet rs = stmt.executeQuery(query);
 	        
 	        while (rs.next()) {
@@ -104,12 +104,49 @@ public static void create(String service_center_id, Timestamp start_time, Timest
     	catch(Throwable e) {
 	        e.printStackTrace();
 	    }
-		
-		
-		Timestamp nextSlotStart = null, nextSlotStop = null;
+
 		if(lastBookedSlot == null){
 			lastBookedSlot = new Timestamp(new Date().getTime());
 		}
+		
+		
+		// 5.5 hours logic = 330 mins
+		DateFormat format = new SimpleDateFormat( "yyyy-MM-dd" );
+		String str = format.format( lastBookedSlot );
+		
+		String scheduledMaintenanceMinsQuery = "SELECT SUM(round((cast(tm1.end_time as date) - cast( tm1.start_time as date))* 24 * 60)) as maintenance_minutes "
+				+ " FROM timeslots tm1 WHERE tm1.status like 'maintenance%' AND TO_CHAR(tm1.end_time, 'YYYY-MM-DD') ="  +"'"+ str +"'"
+				+ " GROUP BY TO_CHAR(tm1.end_time, 'YYYY-MM-DD') "; 
+		
+		int scheduledMaintenanceMins =0;
+		try {	
+			Statement stmt = DBBuilder.getConnection().createStatement();
+	        //System.out.println(scheduledMaintenanceMinsQuery);
+	        ResultSet rs = stmt.executeQuery(scheduledMaintenanceMinsQuery);
+	        
+	        while (rs.next()) {
+	        	scheduledMaintenanceMins = rs.getInt("maintenance_minutes");
+	 	    }
+		} 
+    	catch(Throwable e) {
+	        e.printStackTrace();
+	    }
+		
+		//System.out.println("Booked mins: "+scheduledMaintenanceMins);
+		if(scheduledMaintenanceMins + serviceTimeMins > 330){
+			// cannot schedule more maintenance this day, try next day
+			lastBookedSlot.setDate(lastBookedSlot.getDate()+1);
+			lastBookedSlot.setHours(0);
+			lastBookedSlot.setMinutes(0);
+			lastBookedSlot.setSeconds(0);
+			lastBookedSlot.setNanos(0);
+		}
+		
+		// see if the mechanic is available
+		
+		
+		Timestamp nextSlotStart = null, nextSlotStop = null;
+		
 		
 		nextSlotStart = new Timestamp(lastBookedSlot.getTime() + 1000);
 		nextSlotStop = new Timestamp(nextSlotStart.getTime() + 1000*60*serviceTimeMins);
@@ -128,5 +165,46 @@ public static void create(String service_center_id, Timestamp start_time, Timest
 	
 	public static void main(String args[]){
 		Timeslots.create("S001", new Timestamp(0), new Timestamp(1), "maintenancene");
+	}
+
+	public static Timestamp[] findTwoAvailableRepairSlots(String service_center_id, int serviceTimeMins) {
+		String query = "SELECT MAX(tm1.end_time) as lastBookedSlot FROM timeslots tm1 WHERE service_center_id = "+"'"+service_center_id+"'";
+		// 1 slot from lastBookedSlot+1 to lastBookedSlot + serviceTime
+		// 2 slot from lastBookedSlot + serviceTime +1, to lastBookedSlot + serviceTime + serviceTime
+		Timestamp lastBookedSlot = null;
+		try {	
+			Statement stmt = DBBuilder.getConnection().createStatement();
+	        //System.out.println(query);
+	        ResultSet rs = stmt.executeQuery(query);
+	        
+	        while (rs.next()) {
+	 	      lastBookedSlot = rs.getTimestamp("lastBookedSlot");
+	 	    }
+		} 
+    	catch(Throwable e) {
+	        e.printStackTrace();
+	    }
+
+		if(lastBookedSlot == null){
+			lastBookedSlot = new Timestamp(new Date().getTime());
+		}
+		
+		// see if the mechanic is available
+		// to do
+		Timestamp nextSlotStart = null, nextSlotStop = null;
+		
+		nextSlotStart = new Timestamp(lastBookedSlot.getTime() + 1000);
+		nextSlotStop = new Timestamp(nextSlotStart.getTime() + 1000*60*serviceTimeMins);
+		
+		ret[0] = new Timestamp(nextSlotStart.getTime());
+		ret[1] = new Timestamp(nextSlotStop.getTime());
+		
+		nextSlotStart = new Timestamp(nextSlotStop.getTime() + 1000);
+		nextSlotStop = new Timestamp(nextSlotStart.getTime() + 1000*60*serviceTimeMins);
+		
+		ret[2] = new Timestamp(nextSlotStart.getTime());
+		ret[3] = new Timestamp(nextSlotStop.getTime());
+		
+		return ret;
 	}
 }
