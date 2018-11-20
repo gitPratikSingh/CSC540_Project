@@ -11,6 +11,7 @@ import model.Parts;
 import model.ServiceCenter;
 import model.Users;
 import model.Employees;
+import model.Customers;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -37,13 +38,13 @@ public class ReceptionistController {
 	
 
 	public static void main(String[] args) {
-		System.out.println("Started!");
+		System.out.println("Receptionist Landing Page");
 		ReceptionistController receptionist = new ReceptionistController("chris@gmail.com");
 		receptionist.landing_page();
 	}
 	
 	public String getEmployee_id() {
-		System.out.println("getting employee_id");
+		//System.out.println("getting employee_id");
 		String query = "SELECT EMPLOYEE_ID FROM EMPLOYEE WHERE email = '"+this.username+"'";
 		Statement stmt;
 		String employee_id = "";
@@ -82,7 +83,7 @@ public class ReceptionistController {
 					this.get_customer_profile();
 					break;
 			case "3": System.out.println("3");
-					this.schedule_service();
+					this.registerCarMenu();
 					break;
 			case "4": System.out.println("4");
 					this.viewServiceHistory();
@@ -341,81 +342,68 @@ public class ReceptionistController {
 	
 	
 	private void viewServiceHistory() {
-	/*  
-	 * Display
-	 *  A. ServiceID
-		B. LicensePlate
-		C. ServiceType
-		D. MechanicName
-		E. ServiceStart
-		Date/Time
-		F. Service End
-		Date/Time (expected or actual)
-		G. Service Status (Pending,
-		Ongoing, or Complete)
-	 * */
-	
-	String query = "SELECT APPOINTMENT.appointment_id, BOOKED.license_plate_number, APPOINTMENT.service_type, USERS.name as MechanicName, "
-			+ "		TIMESLOTS.start_time, TIMESLOTS.end_time, APPOINTMENT.status FROM BOOKED"
-			+ "		JOIN APPOINTMENT ON BOOKED.appointment_id = APPOINTMENT.appointment_id "
-			+ "		LEFT JOIN EMPLOYEE ON EMPLOYEE.employee_id = APPOINTMENT.preferred_mechanic "
-			+ "		LEFT JOIN USERS ON EMPLOYEE.email = USERS.email "
-			+ "		JOIN TIMESLOTS ON TIMESLOTS.service_center_id = BOOKED.service_center_id AND TIMESLOTS.timeslots_id = APPOINTMENT.timeslots_id	";
-			//+ "		WHERE customer_id = " + this.customerId; 
-	
-	
-	Statement stmt;
-	String customerid = "";
-	try {
-		stmt = DBBuilder.getConnection().createStatement();
-		ResultSet rs = stmt.executeQuery(query);
 		
-		System.out.println("ServiceID"
-				+ "		LicensePlate"
-				+ "		ServiceType"
-				+ "		MechanicName"
-				+ "		ServiceStart Time"
-				+ "		Service End Time"
-				+ "		Service Status");
-	    
-	    while (rs.next()) {
-	       System.out.println(rs.getString("APPOINTMENT_ID")+"		"
-	    		   +rs.getString("LICENSE_PLATE_NUMBER")+"		"
-	    		   +rs.getString("SERVICE_TYPE")+"		"
-	    		   +rs.getString("NAME")+"		"
-	    		   +rs.getString("MECHANICNAME")+"		"
-	    		   +rs.getString("START_TIME")+"		"
-	    		   +rs.getString("END_TIME")+"		"
-	    		   +rs.getString("STATUS"));
-	    }
-	    
-	} catch (SQLException e) {
-		e.printStackTrace();
-	}
-	
-	System.out.println("1. â€‹Go Back");
-	String response = this.scanner.nextLine();
-	switch(response) {
+		System.out.println("Enter customer email address");
+		String email = scanner.nextLine();
+		String customer_id = getcustomerid(email);
+		
+		
+		String query = "SELECT APPOINTMENT.appointment_id, BOOKED.license_plate_number, APPOINTMENT.service_type, USERS.name as MechanicName, "
+				+ "		TIMESLOTS.start_time, TIMESLOTS.end_time, APPOINTMENT.status FROM BOOKED"
+				+ "		JOIN APPOINTMENT ON BOOKED.appointment_id = APPOINTMENT.appointment_id "
+				+ "		LEFT JOIN EMPLOYEE ON EMPLOYEE.employee_id = APPOINTMENT.preferred_mechanic "
+				+ "		LEFT JOIN USERS ON EMPLOYEE.email = USERS.email "
+				+ "		JOIN TIMESLOTS ON TIMESLOTS.service_center_id = BOOKED.service_center_id AND TIMESLOTS.start_time = APPOINTMENT.start_time	"
+				+ "		WHERE customer_id = " + customer_id; 
+		
+		
+		Statement stmt;
+		try {
+			stmt = DBBuilder.getConnection().createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			
+		    while (rs.next()) {
+		    	System.out.println("");
+		    	System.out.println("A.ServiceID: "+rs.getString("APPOINTMENT_ID"));
+		    	System.out.println("B.LicensePlate: "+rs.getString("LICENSE_PLATE_NUMBER"));
+		    	System.out.println("C.ServiceType: "+rs.getString("SERVICE_TYPE"));
+		    	System.out.println("D.MechanicName: "+rs.getString("MECHANICNAME"));
+		    	System.out.println("E.ServiceStart Time: "+rs.getString("START_TIME"));
+		    	System.out.println("F.Service End Time: "+rs.getString("END_TIME"));
+		    	System.out.println("G.Service Status: "+rs.getString("STATUS"));
+		    	System.out.println("");
+		    	
+		    }
+		    
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+	System.out.println("1. ​Go Back");
+	String response = scanner.nextLine();
+	switch (response){
 	case "1": this.landing_page();
 			  break;
 	}
-	/*
-	switch (checkNumericalInput(1, 1)) {
-	case -1:
-		viewServiceHistory();
-		break;
-	case 1:
-		serviceMenu();
-		break;
-	default:
-		break;
 	}
-	*/
 	
-}
-	
-	
-	
+	private String getcustomerid(String email) {
+		String query = "SELECT * FROM CUSTOMER WHERE email = '"+email+"'";
+		Statement stmt;
+		String customerid = "";
+		try {
+			stmt = DBBuilder.getConnection().createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+		    while (rs.next()) {
+		       customerid = rs.getString("CUSTOMER_ID");
+		    }
+		    
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	    
+		return customerid;
+	}
 	
 	private String getEmail(){
 		String email;
@@ -423,10 +411,6 @@ public class ReceptionistController {
 		try {
 			Statement stmt = null;
 			stmt = DBBuilder.getConnection().createStatement();
-			//String sql = "insert into Users values('test1@gmail.com','mark','raleigh','33441') ";
-			//System.out.println(sql);
-			//stmt.executeUpdate(sql);
-			//System.out.println("Added into Users table..");
 			ResultSet rs = stmt.executeQuery("select * from Users");
 			rs.next();
 			email = rs.getString(1);
@@ -438,84 +422,171 @@ public class ReceptionistController {
 		
 	}
 	
-	public void register_intro() {
-			System.out.println("1.Register");
-			System.out.println("2.Cancel");
-			Scanner reply = new Scanner(System.in);
-			String response = reply.nextLine();
-			switch (response) {
-			case "1": this.register_car();
-						break;
-			case "2": return;
-			}
-			
-		}
 
-	public void register_car() {
-		String email = "";
-		String license_plate_number = "";
-		String purchase_date = "";
-		String make = "";
-		String model = "";
-		String year = "";
-		String mileage = "";
-		String service_date = "";
-		Scanner abhi = new Scanner(System.in);
-		while (email.equals("")){
-		System.out.println("A. Customer email address :(Mandatory)");
-	    email = abhi.nextLine();
-		}
-		while (license_plate_number.equals("")){
-		System.out.println("B. License plate :(Mandatory)");
-		license_plate_number = abhi.nextLine();
-		}
-		while (purchase_date.equals("")) {
-		System.out.println("C. Purchase date :(Mandatory)");
-		purchase_date = abhi.nextLine();
-		}
-		while (make.equals("")) {
-		System.out.println("D. Make :(Mandatory)");
-		make = abhi.nextLine();
-		}
-		while (model.equals("")) {
-		System.out.println("E. Model :(Mandatory)");
-		model = abhi.nextLine();
-		}
-		while (year.equals("")) {
-		System.out.println("F. Year :(Mandatory)");
-		year = abhi.nextLine();
-		}
-		while (mileage.equals("")) {
-		System.out.println("G. Current mileage :(Mandatory)");
-		mileage = abhi.nextLine();
-		}
-		System.out.println("H. Last service date :");
-		service_date = abhi.nextLine();
-		abhi.close();
-		System.out.println(email);
-		System.out.println(license_plate_number);
-		System.out.println(purchase_date);
-		System.out.println(make);
-		System.out.println(model);
-		System.out.println(year);
-		System.out.println(mileage);
-		System.out.println(service_date);
+	private void registerCarMenu() {
 		
-		/*
-		 * customer_id = 'select max(customer_id)+1 from Customer '
-		 * insert into USERS(email,name,)
-		 *insert into CUSTOMER values (customer_id,)
-		 *
-		 *
-		 */
+		
+		String lplate, make, model, year;
+		String pdate = null, last_service_date = null;
+		int mileage;
+		System.out.println("Please enter customer's email address:");
+		String username = scanner.nextLine();
+		
+		
+		while(true){
+		System.out.print("\n Please enter the Licence plate number\n");
+		lplate = scanner.nextLine();
+		
+		if (lplate == null || lplate.equals("") == false)
+			break;
+		}
+		
+		while(true){
+		System.out.print("\n Please enter the Purchasedate in yyyy-mm-dd format \n");
+		pdate = scanner.nextLine();
+		if (pdate == null || pdate.equals("") == false)
+			break;
+		}
+		
+		System.out.print("\n Please enter the make\n");
+		make = scanner.nextLine();
+		
+		System.out.print("\n Please enter the model\n");
+		model = scanner.nextLine();
+		
+		System.out.print("\n Please enter the year\n");
+		year = scanner.nextLine();
+		
+		System.out.print("\n Please enter the Current mileage\n");
+		
+		try{
+			mileage = Integer.parseInt(scanner.nextLine());
+		}catch(NumberFormatException n){
+			mileage = 0;
+		}		
+
+		System.out.print("\n Please enter the Last Service Date in yyyy-mm-dd format\n");
+		last_service_date = scanner.nextLine();
+        
+
+		System.out.println("\n1.Register");
+		System.out.println("2.Cancel");
+		String response = scanner.nextLine();
+		switch(response) {
+		case "1": registerCar(username, lplate, pdate, make, model, year, mileage, last_service_date);
+				  break;
+		case "2": this.landing_page();
+				  break;
+		
+		}
+		
+	}
+
+	private void registerCar(String username, String lplate, String pdate, String make, String model, String year, int mileage, String last_service_date) {
+		
+		Car.create(lplate, make, year, model, last_service_date, null, pdate, mileage, null);
+		String customer_id = this.getcustomerid(username);
+		HasCars.create(customer_id, lplate);
+		System.out.println("\nCar has been registered\n");
+
+		
 	}
 	
-	public void show_service_history() {
-		System.out.println("Enter customer's email address:");
-		String email = "";
-		Scanner conn = new Scanner(System.in);
-		email = conn.nextLine();
+	private void scheduleService() {
+		
+		String lplate = "";
+		String username ="";
+		
+		while(true){
+			System.out.print("\n Please enter the Email address of the customer\n");
+			username = scanner.nextLine();
+			if ((lplate == null || lplate.equals("")) == false)
+				break;
+			}
+		
+		while(true){
+		System.out.print("\n Please enter the Licence plate number\n");
+		lplate = scanner.nextLine();
+		if ((lplate == null || lplate.equals("")) == false)
+			break;
+		}
+		
+		int mileage = 0;
+		while(true){
+		System.out.print("\n Please enter the Current Mileage\n");
+		String str_milage = scanner.nextLine();
+		if ((str_milage == null || str_milage.equals("")) == false)
+			{
+				mileage = Integer.parseInt(str_milage);
+				break;
+			}
+		}
+		
+		System.out.print("\n Please enter the Mechanic Name\n");
+		String mname = scanner.nextLine();
+		
+		System.out.print("1. Schedule Maintenance");
+		System.out.print("2. Schedule Repair");
+		System.out.print("3. Go Back");
+		
+		String response = scanner.nextLine();
+		switch(response) {
+		case "1": scheduleMaintenance(lplate, mileage, mname);
+				  break;
+		case "2": scheduleRepair(lplate, mileage, mname);
+				  break;
+		case "3": this.landing_page();
+				  break;
+		}
+		}
+		
+
+	private void scheduleMaintenance(String lplate, int mileage, String mname) {
+		
+		System.out.println("1.Find Service Date");
+		System.out.println("2.Go Back");
+		
+		String response = scanner.nextLine();
+		
+		switch (response) {
+		case "1":
+			findNextAvailableTwoServiceDates(lplate, mileage, mname);
+			break;
+		case "2":
+			scheduleService();
+			break;
+		default:
+			break;
+		}
+		
 	}
+	
+	private void findNextAvailableTwoServiceDates(String lplate, int mileage, String mname) {
+		
+		
+		String city = Customers.getCity(this.username);
+		String service_center = ServiceCenter.findByCity(city);
+		
+		Timestamp[] availableTimeslots = ServiceCenter.getNextTwoAvailableDates(service_center, lplate, mileage);
+		System.out.println(SCHEDULE_MAINTENANCE_DATES);
+		
+		
+		switch (checkNumericalInput(1, 2)) {
+		case -1:
+			findNextAvailableTwoServiceDates(lplate, mileage, mname);
+			break;
+		case 1:
+			PickTheDate(availableTimeslots, lplate, service_center, mname);
+			break;
+		case 2:
+			scheduleService();
+			break;
+		default:
+			break;
+		}
+		
+	}
+	
 	
 	public void schedule_service() {
 		System.out.println("1.Schedule Maintenance");
