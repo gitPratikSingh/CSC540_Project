@@ -12,6 +12,10 @@ import model.ServiceCenter;
 import model.Users;
 import model.Employees;
 import model.Customers;
+import java.text.DateFormat;
+import model.Booked;
+import model.Appointment;
+import model.Timeslots;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -89,6 +93,7 @@ public class ReceptionistController {
 					this.viewServiceHistory();
 					break;
 			case "5": System.out.println("5");
+					this.scheduleService();
 					break;
 			case "6": System.out.println("6");
 					break;
@@ -405,23 +410,6 @@ public class ReceptionistController {
 		return customerid;
 	}
 	
-	private String getEmail(){
-		String email;
-		email = "";
-		try {
-			Statement stmt = null;
-			stmt = DBBuilder.getConnection().createStatement();
-			ResultSet rs = stmt.executeQuery("select * from Users");
-			rs.next();
-			email = rs.getString(1);
-		} 
-    	catch(Throwable e) {
-	        e.printStackTrace();
-	    }
-		return email;
-		
-	}
-	
 
 	private void registerCarMenu() {
 		
@@ -497,12 +485,9 @@ public class ReceptionistController {
 		String lplate = "";
 		String username ="";
 		
-		while(true){
-			System.out.print("\n Please enter the Email address of the customer\n");
-			username = scanner.nextLine();
-			if ((lplate == null || lplate.equals("")) == false)
-				break;
-			}
+		System.out.print("\n Please enter the Email address of the customer\n");
+		username = scanner.nextLine();
+		
 		
 		while(true){
 		System.out.print("\n Please enter the Licence plate number\n");
@@ -525,23 +510,23 @@ public class ReceptionistController {
 		System.out.print("\n Please enter the Mechanic Name\n");
 		String mname = scanner.nextLine();
 		
-		System.out.print("1. Schedule Maintenance");
-		System.out.print("2. Schedule Repair");
-		System.out.print("3. Go Back");
+		System.out.println("1. Schedule Maintenance");
+		System.out.println("2. Schedule Repair");
+		System.out.println("3. Go Back");
 		
 		String response = scanner.nextLine();
 		switch(response) {
-		case "1": scheduleMaintenance(lplate, mileage, mname);
+		case "1": scheduleMaintenance(username,lplate, mileage, mname);
 				  break;
-		case "2": scheduleRepair(lplate, mileage, mname);
-				  break;
+		//case "2": scheduleRepair(lplate, mileage, mname);
+		//		  break;
 		case "3": this.landing_page();
 				  break;
 		}
 		}
 		
 
-	private void scheduleMaintenance(String lplate, int mileage, String mname) {
+	private void scheduleMaintenance(String username,String lplate, int mileage, String mname) {
 		
 		System.out.println("1.Find Service Date");
 		System.out.println("2.Go Back");
@@ -550,7 +535,7 @@ public class ReceptionistController {
 		
 		switch (response) {
 		case "1":
-			findNextAvailableTwoServiceDates(lplate, mileage, mname);
+			findNextAvailableTwoServiceDates(username,lplate, mileage, mname);
 			break;
 		case "2":
 			scheduleService();
@@ -561,30 +546,70 @@ public class ReceptionistController {
 		
 	}
 	
-	private void findNextAvailableTwoServiceDates(String lplate, int mileage, String mname) {
+	private void findNextAvailableTwoServiceDates(String username,String lplate, int mileage, String mname) {
 		
 		
 		String city = Customers.getCity(this.username);
 		String service_center = ServiceCenter.findByCity(city);
 		
 		Timestamp[] availableTimeslots = ServiceCenter.getNextTwoAvailableDates(service_center, lplate, mileage);
-		System.out.println(SCHEDULE_MAINTENANCE_DATES);
+		System.out.println("1.Schedule on Date");
+		System.out.println("2.Go Back");
+		String response = scanner.nextLine();
+		switch(response) {
+		case "1": PickTheDate(username,availableTimeslots, lplate, service_center, mname);
+				  break;
+		case "2": scheduleService();
+				  break;}
+		}
 		
+	private void PickTheDate(String username,Timestamp[] availableTimeslots, String lplate, String service_center, String mname) {
+		System.out.println("Available on the folloing date and time");
+		DateFormat format = new SimpleDateFormat( "yyyy-dd-MM h:mm a" );
+		String str1 = format.format( availableTimeslots[0] );
+		String str2 = format.format( availableTimeslots[2] );
 		
-		switch (checkNumericalInput(1, 2)) {
-		case -1:
-			findNextAvailableTwoServiceDates(lplate, mileage, mname);
+		System.out.println(str1);
+		System.out.println(str2);
+		
+		System.out.println("Select 1 for the first date, 2 for the last date\n");
+		String response = scanner.nextLine();
+		
+		switch (response) {
+		case "1":
+			scheduleTheDate(username,lplate, service_center, availableTimeslots[0], availableTimeslots[1], availableTimeslots[4], availableTimeslots[5], availableTimeslots[6],  mname);
 			break;
-		case 1:
-			PickTheDate(availableTimeslots, lplate, service_center, mname);
-			break;
-		case 2:
-			scheduleService();
+		case "2":
+			scheduleTheDate(username,lplate, service_center, availableTimeslots[2], availableTimeslots[3], availableTimeslots[4], availableTimeslots[5], availableTimeslots[6],  mname);
 			break;
 		default:
 			break;
 		}
+	}
+	
+	private void scheduleTheDate(String username,String lplate, String service_center, Timestamp start_time, Timestamp end_time, Timestamp serviceAmissed, Timestamp serviceBmissed, Timestamp serviceCmissed, String mname) {
+		String missedServices ="";
+		if(serviceAmissed != null){
+			missedServices = missedServices + "A";
+		}
 		
+		if(serviceBmissed != null){
+			missedServices = missedServices + "B";
+		}
+		
+		if(serviceCmissed != null){
+			missedServices = missedServices + "C";
+		}
+		
+		Timeslots.create(service_center, start_time, end_time, "maintenance:"+ missedServices);
+		int app_id = Appointment.create("pending", start_time, ServiceCenter.serviceNeeded, mname);
+		String customerId = this.getcustomerid(username);
+		Booked.create(customerId, service_center, app_id, lplate);
+		
+		DateFormat format = new SimpleDateFormat( "yyyy-mm-dd h:mm a" );
+		String str = format.format( start_time );
+		System.out.println("\nService booked on "+str);
+		this.landing_page();
 	}
 	
 	
