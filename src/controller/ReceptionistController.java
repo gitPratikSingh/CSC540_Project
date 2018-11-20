@@ -366,27 +366,69 @@ public class ReceptionistController {
 		return bss;
 	}
 	
-	private String get_cost(String field, String item,String make,String model) {
-		String query = "select charge, time , part_name , quantity from Basic_service" + 
-				"where service_name = '"+item+"' AND make = '"+make+"' AND model = '"+model+"'";
+	
+	private HashMap<String,String> get_parts_details(String part,String make,String model) {
+		
+		String query= "select unit_price,warranty from parts where part_name = '"+part+"' and make = '"+make+"' and model = '"+model+"'";
 		Statement stmt;
+		String unit_price = "";
+		String warranty = "";
+		HashMap<String,String> Dict = new HashMap<String,String>();
 		try {
 			stmt = DBBuilder.getConnection().createStatement();
 			ResultSet rs = stmt.executeQuery(query);
 			
 		    while (rs.next()) {
-		    	String charge = rs.getString("charge");
-		    	String time = rs.getString("time");
-		    	String part_name = rs.getString("part_name");
-		    	String quantity = rs.getString("quantity");
-		    	charge * float(time/60);
+		    	unit_price = rs.getString("unit_price");
+		    	warranty = rs.getString("warranty");
+		    	
 		    }
+		}
+		    catch (SQLException e) {
+				e.printStackTrace();
+			}
+		Dict.put("unit_price", unit_price);
+    	Dict.put("warranty", warranty);
+    	return Dict;
+    	
+		    }
+	
+	
+	
+	
+	private HashMap<String,String> get_Bss_details(String item,String make,String model) {
+		String query = "select charge, time , part_name , quantity from Basic_service" + 
+				"where service_name = '"+item+"' AND make = '"+make+"' AND model = '"+model+"'";
+		Statement stmt;
+		String charge = "";
+		String time = "";
+		String part_name = "";
+		String quantity = "";
+		HashMap<String,String> Dict = new HashMap<String,String>();
+		try {
+			stmt = DBBuilder.getConnection().createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			
+		    while (rs.next()) {
+		    	charge = rs.getString("charge");
+		    	time = rs.getString("time");
+		    	part_name = rs.getString("part_name");
+		    	quantity = rs.getString("quantity");
 		    	
-		    	
+		    }
+		}
+		    catch (SQLException e) {
+				e.printStackTrace();
+			}
+		Dict.put("charge", charge);
+    	Dict.put("time", time);
+    	Dict.put("part_name", part_name);
+    	Dict.put("quantity", quantity);
+    	return Dict;
+    	
 		    }
 			
 		
-	}
 	
 	
 	private void generateinvoice() {
@@ -402,7 +444,7 @@ public class ReceptionistController {
 				+ "		LEFT JOIN USERS ON EMPLOYEE.email = USERS.email "
 				+ "     JOIN CAR ON BOOKED.license_plate_number = CAR.license_plate_number"
 				+ "		JOIN TIMESLOTS ON TIMESLOTS.service_center_id = BOOKED.service_center_id AND TIMESLOTS.start_time = APPOINTMENT.start_time	"
-				+ "		WHERE customer_id = " + customer_id; 
+				+ "		WHERE customer_id = " + customer_id + "and APPOINTMENT.status = completed" ; 
 		
 		Statement stmt;
 		try {
@@ -413,6 +455,9 @@ public class ReceptionistController {
 		    	HashMap<String,String> Labour_charge = new HashMap<String,String>();
 		    	HashMap<String,String> Part_charge = new HashMap<String,String>();
 		    	HashMap<String,String> Warranty = new HashMap<String,String>();
+		    	HashMap<String,String> BSS_DETAILS = new HashMap<String,String>();
+		    	HashMap<String,String> PART_DETAILS = new HashMap<String,String>();
+		    	HashMap<String,Float> TOTAL_COST = new HashMap<String,Float>();
 		    	ArrayList<String> BSS_LIST = new ArrayList<String>();
 		    	String make = rs.getString("make");
 		    	String model = rs.getString("model");
@@ -430,18 +475,25 @@ public class ReceptionistController {
 		    			 break;
 		    	}
 		    	for (String t: BSS_LIST) {
-		    		String labour = get_cost("labour",t,make,model);
-		    		Labour_charge.put(t, value)
-		    		
+		    		BSS_DETAILS = get_Bss_details(t,make,model);
+		    		String part_name = BSS_DETAILS.get("part_name");
+		            PART_DETAILS = get_parts_details(part_name,make,model);
+		            Float service_charge = Float.parseFloat(BSS_DETAILS.get("charge")) * (Float.parseFloat(BSS_DETAILS.get("time")))/60 ;
+		    		Labour_charge.put(t,(""+service_charge));
+		    		Float part_charges = Float.parseFloat(BSS_DETAILS.get("quanity")) * Float.parseFloat(PART_DETAILS.get("unit_price"));
+		    		Part_charge.put(t,(""+part_charges));
+		    		int warranty = Integer.parseInt(PART_DETAILS.get("warranty"));
+		    		Warranty.put(t,(""+warranty));
+		    		TOTAL_COST.put(t, (service_charge + part_charges));
 		    	}
+		    	
 		    	
 		    }
 		    
 		} catch (SQLException e) {
-			e.printStackTrace();
+			e.printStackTrace();}
 		}
 		
-		ArrayList<String> BSS = new ArrayList<String>();
 		
 				
 		
@@ -460,17 +512,7 @@ public class ReceptionistController {
 				select unit_price,warranty from parts where part_name = part_name and make = make and model = model
 				Parts_charge[item] =  price * float(time/60)
 				warranty[item] = warranty
-		
-		
-		
-		/*
-		 * get BSS associated with service_type
-		 * put that in an array
-		 * 
-		 */
-		
-		
-	}
+		*/
 	
 	
 	
