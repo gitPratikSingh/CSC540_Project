@@ -191,7 +191,7 @@ public class ManagerController {
 	public static void carServiceDetails()
 	{
 		System.out.println("Car Service Details ");
-		//dislay all cars with details of service 
+		//display all cars with details of service 
 		/*
 
 Make
@@ -212,7 +212,6 @@ b. Months
 c. Additional
 Parts
 		 */
-		
 		System.out.println("1.Go Back");
 		int n = reader.nextInt();
 		
@@ -225,23 +224,8 @@ Parts
 	{
 		System.out.println("New Car Model");
         /*
-		Make
-		Model
-		Year
-		Service A:
-		a. Miles
-		b. Months
-		c. Parts List
-		E. Service B
-		a. Miles
-		b. Months
-		c. Additional
-		Parts
-		F. Service C
-		a. Miles
-		b. Months
-		c. Additional
-		Parts
+		Make Model Year Service A: a. Miles b. Months c. Parts List E. Service B a. Miles b. Months c. Additional
+        Parts F. Service C a. Miles b. Months c. Additional Parts
 	    */	
 		System.out.println("Enter the Car Make (nissan honda or )");
 		String car_make = reader.nextLine();
@@ -273,8 +257,8 @@ Parts
 	    car_service_type= "'"+car_service_type+"'";
 	    
 	    System.out.println("enter the list of part IDs ");
-	    int part_ids[] = null; 
-	    int count=0;
+	    int part_ids[] =new int[num_of_parts]; 
+	
 	   Statement stmt;
 	    
 	    
@@ -380,17 +364,44 @@ Parts
 	  }
 	}
 	public static void orderHistory()
-	{/*display these 
-		Order ID
-		Date
-		Part Name
-		Supplier Name
-		Purchaser Name
-		Quantity
-		Unit Price
-		Total Cost
-		Order Status
+	{/*display these  Order ID Date Part Name Supplier Name Purchaser Name Quantity Unit Price Total Cost Order Status
 		*/
+		Statement stmt;
+		ResultSet rs ;
+		String query = "SELECT ORDER_ID, ORDER_DATE, PART_NAME,SERVICE_CENTER_ID, QUANTITY, UNIT_PRICE ,STATUS FROM ORDERS"
+				+ "     JOIN PARTS ON PARTS.PART_ID = ORDERS.PART_ID WHERE SERVICE_CENTER_ID = '"+ManagerSid+"'";
+	
+		//System.out.println(query);
+		
+		System.out.println("ORDER_ID,  ORDER_DATE        , PART_NAME, SUPPLIER_ID, PURCHASER_NAME/ID,QUANTITY, UNIT_PRICE , TOTAL COST , STATUS");   
+		try {
+			stmt = DBBuilder.getConnection().createStatement();
+		
+		rs= stmt.executeQuery(query);
+		//get the result of the query 
+	  
+		while (rs.next()) {
+			String status=rs.getString("STATUS");
+			 String[] split_status=status.split(":");
+			
+		       System.out.println(
+		    		    rs.getInt("ORDER_ID")+"   "
+		    		   +rs.getString("ORDER_DATE")+"		"
+		    		   +rs.getString("PART_NAME")+"    "
+		    		   +split_status[1]+"     "
+		    		   +rs.getString("SERVICE_CENTER_ID")+"		"
+		    		   +rs.getInt("QUANTITY")+"      "
+		    		   +rs.getFloat("UNIT_PRICE")+"    "
+		    		   +rs.getFloat("UNIT_PRICE")*rs.getInt("QUANTITY")+"    "
+		    		   +split_status[0]+"		");
+		    }
+		
+		}catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
 		//provide option to go back
 		System.out.println("1.Go Back");
 		
@@ -412,7 +423,7 @@ Parts
 			System.out.println("Quantity");
 			int quantity = reader.nextInt();
 			
-			//other variable for the autopopulate 
+			//other variable for the auto populate 
 			String distributor_id=null;
 			int delivery_window = -1;
 		
@@ -421,28 +432,40 @@ Parts
 			
 			+" WHERE PART_ID = "+part_id+" AND DELIVERY_WINDOW IS NOT NULL";
 			
+			
+			
 			ResultSet rs;
 			Statement stmt;
 			try {
 				stmt = DBBuilder.getConnection().createStatement();
 			
 				rs= stmt.executeQuery(query);
-				rs.next();
+				if(rs.next()) {
 				distributor_id =rs.getString("DISTRIBUTOR_ID");
-			
+				
 				delivery_window =rs.getInt("DELIVERY_WINDOW");
 				//get the result of the query 
-				
+				   }
 			    }
 			 catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			
+			String service_id= ManagerHelper.serviceCenter(part_id, ManagerSid);
+			if(!(service_id.equals(" ")))
+			{
+				distributor_id = service_id;
+				delivery_window =1;
+			}
+			
+			 
 			System.out.println("selecting distributor "+ distributor_id+" delivery window = "+delivery_window);
 			
 			
-			
+			if (delivery_window ==-1)
+				{System.out.println(" did not find any option to buy the parts ");
+			 return;}
 			/*Details such as cost, order date, etc. should be automatically calculated and
  			the order status must be set as “pending”.After placing the
 			order, show a confirmation message with the order ID*/
@@ -455,7 +478,9 @@ Parts
 	
 			String status = "pending:"+ distributor_id;
 			Timestamp order_date= ManagerHelper.getCurrentTimestamp();
-		
+			
+			Timestamp arrival_date = ManagerHelper.addDate(order_date, delivery_window);
+			status = status+":"+arrival_date.toString();
 	
 			if (n==1)
 			{
@@ -474,6 +499,7 @@ Parts
 			//function to calculate estimated date   
 	}
 	
+
 	public static void notification()
 
 	{
@@ -496,6 +522,8 @@ Parts
 		*/
 		
 		//while(true) {
+		
+		System.out.println("A.Notification ID, Notification Time, Order ID, Supplier Name, Expected Delivery,delayed by days");
 		
 		System.out.println("1.Order ID");
 		System.out.println("2.Go Back");
