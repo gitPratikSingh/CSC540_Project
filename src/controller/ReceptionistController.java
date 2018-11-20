@@ -8,6 +8,7 @@ import model.Car;
 import model.HasCars;
 import model.HasParts;
 import model.Parts;
+
 import model.ServiceCenter;
 import model.Users;
 import model.Employees;
@@ -21,7 +22,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Scanner;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -345,6 +348,173 @@ public class ReceptionistController {
 		}
 		
 	
+	private ArrayList<String> get_BSS(String Service_type, String model, String make) {
+		String query = "select service_name from Basic_services"
+		+" where model='"+model+"' AND make='"+make+"' AND service_type='"+Service_type+"'";
+		ArrayList<String> bss = new ArrayList<String>();
+		Statement stmt;
+		try {
+			stmt = DBBuilder.getConnection().createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			
+		    while (rs.next()) {
+		    	bss.add(rs.getString("SERVICE_NAME"));
+		    	}
+		    }catch (SQLException e) {
+				e.printStackTrace();
+			}
+		return bss;
+	}
+	
+	
+	private HashMap<String,String> get_parts_details(String part,String make,String model) {
+		
+		String query= "select unit_price,warranty from parts where part_name = '"+part+"' and make = '"+make+"' and model = '"+model+"'";
+		Statement stmt;
+		String unit_price = "";
+		String warranty = "";
+		HashMap<String,String> Dict = new HashMap<String,String>();
+		try {
+			stmt = DBBuilder.getConnection().createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			
+		    while (rs.next()) {
+		    	unit_price = rs.getString("unit_price");
+		    	warranty = rs.getString("warranty");
+		    	
+		    }
+		}
+		    catch (SQLException e) {
+				e.printStackTrace();
+			}
+		Dict.put("unit_price", unit_price);
+    	Dict.put("warranty", warranty);
+    	return Dict;
+    	
+		    }
+	
+	
+	
+	
+	private HashMap<String,String> get_Bss_details(String item,String make,String model) {
+		String query = "select charge, time , part_name , quantity from Basic_service" + 
+				"where service_name = '"+item+"' AND make = '"+make+"' AND model = '"+model+"'";
+		Statement stmt;
+		String charge = "";
+		String time = "";
+		String part_name = "";
+		String quantity = "";
+		HashMap<String,String> Dict = new HashMap<String,String>();
+		try {
+			stmt = DBBuilder.getConnection().createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			
+		    while (rs.next()) {
+		    	charge = rs.getString("charge");
+		    	time = rs.getString("time");
+		    	part_name = rs.getString("part_name");
+		    	quantity = rs.getString("quantity");
+		    	
+		    }
+		}
+		    catch (SQLException e) {
+				e.printStackTrace();
+			}
+		Dict.put("charge", charge);
+    	Dict.put("time", time);
+    	Dict.put("part_name", part_name);
+    	Dict.put("quantity", quantity);
+    	return Dict;
+    	
+		    }
+			
+		
+	
+	
+	private void generateinvoice() {
+		System.out.println("Enter customer email address");
+		String email = scanner.nextLine();
+		String customer_id = getcustomerid(email);
+		
+		
+		String query = "SELECT APPOINTMENT.appointment_id, BOOKED.license_plate_number, car.make, car.model,APPOINTMENT.service_type, USERS.name as MechanicName, "
+				+ "		TIMESLOTS.start_time, TIMESLOTS.end_time, APPOINTMENT.status FROM BOOKED"
+				+ "		JOIN APPOINTMENT ON BOOKED.appointment_id = APPOINTMENT.appointment_id "
+				+ "		LEFT JOIN EMPLOYEE ON EMPLOYEE.employee_id = APPOINTMENT.preferred_mechanic "
+				+ "		LEFT JOIN USERS ON EMPLOYEE.email = USERS.email "
+				+ "     JOIN CAR ON BOOKED.license_plate_number = CAR.license_plate_number"
+				+ "		JOIN TIMESLOTS ON TIMESLOTS.service_center_id = BOOKED.service_center_id AND TIMESLOTS.start_time = APPOINTMENT.start_time	"
+				+ "		WHERE customer_id = " + customer_id + "and APPOINTMENT.status = completed" ; 
+		
+		Statement stmt;
+		try {
+			stmt = DBBuilder.getConnection().createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			
+		    while (rs.next()) {
+		    	HashMap<String,String> Labour_charge = new HashMap<String,String>();
+		    	HashMap<String,String> Part_charge = new HashMap<String,String>();
+		    	HashMap<String,String> Warranty = new HashMap<String,String>();
+		    	HashMap<String,String> BSS_DETAILS = new HashMap<String,String>();
+		    	HashMap<String,String> PART_DETAILS = new HashMap<String,String>();
+		    	HashMap<String,Float> TOTAL_COST = new HashMap<String,Float>();
+		    	ArrayList<String> BSS_LIST = new ArrayList<String>();
+		    	String make = rs.getString("make");
+		    	String model = rs.getString("model");
+		    	String service_id = rs.getString("APPOINTMENT_ID");
+		    	String license_plate = rs.getString("LICENSE_PLATE_NUMBER");
+		    	String service_type = rs.getString("SERVICE_TYPE");
+		    	String mechanic_name = rs.getString("MECHANICNAME");
+		    	String service_start_time = rs.getString("START_TIME");
+		    	String service_end_time = rs.getString("END_TIME");
+		    	String service_status = rs.getString("STATUS");
+		    	switch(service_type) {
+		    	case "C": BSS_LIST.addAll(get_BSS("C",make,model));
+		    	case "B": BSS_LIST.addAll(get_BSS("B",make,model));
+		    	case "A": BSS_LIST.addAll(get_BSS("A",make,model));
+		    			 break;
+		    	}
+		    	for (String t: BSS_LIST) {
+		    		BSS_DETAILS = get_Bss_details(t,make,model);
+		    		String part_name = BSS_DETAILS.get("part_name");
+		            PART_DETAILS = get_parts_details(part_name,make,model);
+		            Float service_charge = Float.parseFloat(BSS_DETAILS.get("charge")) * (Float.parseFloat(BSS_DETAILS.get("time")))/60 ;
+		    		Labour_charge.put(t,(""+service_charge));
+		    		Float part_charges = Float.parseFloat(BSS_DETAILS.get("quanity")) * Float.parseFloat(PART_DETAILS.get("unit_price"));
+		    		Part_charge.put(t,(""+part_charges));
+		    		int warranty = Integer.parseInt(PART_DETAILS.get("warranty"));
+		    		Warranty.put(t,(""+warranty));
+		    		TOTAL_COST.put(t, (service_charge + part_charges));
+		    	}
+		    	
+		    	
+		    }
+		    
+		} catch (SQLException e) {
+			e.printStackTrace();}
+		}
+		
+		
+				
+		
+		//Populate BSS 
+		/* select service_name from Basic_services
+			where model ='Corolla' AND make ='Toyota' AND service_type='A'
+			select service_name from Basic_services
+			where model ='Corolla' AND make ='Toyota' AND service_type='B'
+			select service_name from Basic_services
+			where model ='Corolla' AND make ='Toyota' AND service_type='C'
+			
+			for item in BSS:
+				select charge, time , part_name , quantity from Basic_service
+				where service_name = item AND make = make AND model = model
+				Labour_charge[item] = charge * float(time/60)
+				select unit_price,warranty from parts where part_name = part_name and make = make and model = model
+				Parts_charge[item] =  price * float(time/60)
+				warranty[item] = warranty
+		*/
+	
+	
 	
 	private void viewServiceHistory() {
 		
@@ -361,6 +531,7 @@ public class ReceptionistController {
 				+ "		JOIN TIMESLOTS ON TIMESLOTS.service_center_id = BOOKED.service_center_id AND TIMESLOTS.start_time = APPOINTMENT.start_time	"
 				+ "		WHERE customer_id = " + customer_id; 
 		
+		//System.out.println(query);
 		
 		Statement stmt;
 		try {
