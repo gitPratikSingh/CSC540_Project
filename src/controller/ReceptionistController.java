@@ -347,6 +347,26 @@ public class ReceptionistController {
 		}
 		}
 		
+	private ArrayList<String> get_BSS_for_repair(String repair, String model, String make) {
+		String query = "select Basic_services.service_name from Basic_services"
+		+"join Repairs on Basic_service.BASIC_SERVICE_ID = repairs.BASIC_SERVICE_ID"
+		+" where model='"+model+"' AND make='"+make+"' AND repair_name='"+repair+"'";
+		ArrayList<String> bss = new ArrayList<String>();
+		Statement stmt;
+		try {
+			stmt = DBBuilder.getConnection().createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			
+		    while (rs.next()) {
+		    	bss.add(rs.getString("SERVICE_NAME"));
+		    	}
+		    }catch (SQLException e) {
+				e.printStackTrace();
+			}
+		return bss;
+	}
+	
+	
 	
 	private ArrayList<String> get_BSS(String Service_type, String model, String make) {
 		String query = "select service_name from Basic_services"
@@ -429,7 +449,22 @@ public class ReceptionistController {
 		    }
 			
 		
-	
+	private Float getdiagfee(String repair_name) {
+		String query = "select diagnostic_fee from repairs where repair_name = '"+repair_name+"'";
+		Float fees = 0f;
+		Statement stmt;
+		try {
+			stmt = DBBuilder.getConnection().createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+		    while (rs.next()) {
+		    	fees = Float.parseFloat(rs.getString("diagonistic_fee"));
+		    }
+		}
+		catch (SQLException e) {
+			e.printStackTrace();}
+		return fees;
+		
+	}
 	
 	private void generateinvoice() {
 		System.out.println("Enter customer email address");
@@ -458,7 +493,9 @@ public class ReceptionistController {
 		    	HashMap<String,String> BSS_DETAILS = new HashMap<String,String>();
 		    	HashMap<String,String> PART_DETAILS = new HashMap<String,String>();
 		    	HashMap<String,Float> TOTAL_COST = new HashMap<String,Float>();
+		    	HashMap<String,Float> Labour_hours = new HashMap<String,Float>();
 		    	ArrayList<String> BSS_LIST = new ArrayList<String>();
+		    	HashMap<String,String> Part_name = new HashMap<String,String>();
 		    	String make = rs.getString("make");
 		    	String model = rs.getString("model");
 		    	String service_id = rs.getString("APPOINTMENT_ID");
@@ -468,28 +505,64 @@ public class ReceptionistController {
 		    	String service_start_time = rs.getString("START_TIME");
 		    	String service_end_time = rs.getString("END_TIME");
 		    	String service_status = rs.getString("STATUS");
+		    	if (service_type.equals("A") || service_type.equals("B") || service_type.equals("C")) {
 		    	switch(service_type) {
 		    	case "C": BSS_LIST.addAll(get_BSS("C",make,model));
 		    	case "B": BSS_LIST.addAll(get_BSS("B",make,model));
 		    	case "A": BSS_LIST.addAll(get_BSS("A",make,model));
 		    			 break;
+		    	}}
+		    	else {
+		    		BSS_LIST.addAll(get_BSS_for_repair(service_type,make,model));
 		    	}
+		    	System.out.println("A.Service ID : "+service_id);
+		    	System.out.println("B.Service Start Date/Time : "+service_start_time);
+		    	System.out.println("C.Service End Date/Time : "+service_end_time);
+		    	System.out.println("D.Licence Plate : "+license_plate);
+		    	System.out.println("E.Service Type: "+service_type);
+		    	System.out.println("F.Mechanic Name: "+mechanic_name);
+		    	
 		    	for (String t: BSS_LIST) {
 		    		BSS_DETAILS = get_Bss_details(t,make,model);
 		    		String part_name = BSS_DETAILS.get("part_name");
 		            PART_DETAILS = get_parts_details(part_name,make,model);
+		            Part_name.put(t, BSS_DETAILS.get("part_name"));
 		            Float service_charge = Float.parseFloat(BSS_DETAILS.get("charge")) * (Float.parseFloat(BSS_DETAILS.get("time")))/60 ;
 		    		Labour_charge.put(t,(""+service_charge));
+		    		Labour_hours.put(t,(Float.parseFloat(BSS_DETAILS.get("time"))/60));
 		    		Float part_charges = Float.parseFloat(BSS_DETAILS.get("quanity")) * Float.parseFloat(PART_DETAILS.get("unit_price"));
 		    		Part_charge.put(t,(""+part_charges));
 		    		int warranty = Integer.parseInt(PART_DETAILS.get("warranty"));
 		    		Warranty.put(t,(""+warranty));
-		    		TOTAL_COST.put(t, (service_charge + part_charges));
+		    		TOTAL_COST.put(t, (service_charge + part_charges));	
+		    	}
+		    	Float labour_charge = 0f;
+		    	Float labour_hours = 0f;
+		    	Float total_cost = 0f;
+		    	System.out.println("G.Parts used in service with cost of each part :");
+		    	for (String t: BSS_LIST) {
+		    		System.out.println("Part : "+Part_name.get(t));
+		    		System.out.println("Cost : "+Part_charge.get(t));
+		    		System.out.print("\n\n");
+		    	}
+		    	for (String t: BSS_LIST) {
+		    		labour_hours = labour_hours + Labour_hours.get(t);  
 		    	}
 		    	
-		    	
+		    	System.out.println("H.Total labor hours: "+labour_hours);
+		    	for (String t: BSS_LIST) {
+		    		labour_charge = labour_charge + Float.parseFloat(Labour_charge.get(t));  
+		    	}
+		    	System.out.println("I.labor wages per hour: "+(labour_charge/labour_hours));
+		    	for (String t: BSS_LIST) {
+		    		total_cost = total_cost + TOTAL_COST.get(t);  
+		    	}
+		    	if (!(service_type.equals("A") || service_type.equals("B") || service_type.equals("C"))) {
+		    		total_cost = total_cost + getdiagfee(service_type);
+		    	}
+		    	System.out.println("J.Total Service Cost: "+total_cost);
 		    }
-		    
+		    	
 		} catch (SQLException e) {
 			e.printStackTrace();}
 		}
