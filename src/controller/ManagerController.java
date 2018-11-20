@@ -193,7 +193,7 @@ public class ManagerController {
 		System.out.println("Car Service Details ");
 		//display all cars with details of service 
 		/*
-
+system.out.print(
 Make
 Model
 Year
@@ -210,8 +210,57 @@ F. Service C
 a. Miles
 b. Months
 c. Additional
-Parts
-		 */
+Parts*/
+		
+		String query_for_services = "SELECT * FROM SUPPORTED_SERVICES"; 
+	
+		Statement stmt;
+		ResultSet rs1, rs2;
+	
+		try {
+			stmt = DBBuilder.getConnection().createStatement();
+			
+			rs1= stmt.executeQuery(query_for_services);
+			
+			while(rs1.next()) {
+			
+				
+			System.out.println("A.MAKE ="+rs1.getString("MAKE"));
+			System.out.println("B.Model ="+rs1.getString("MODEL"));
+			System.out.println("C.Service Type = "+rs1.getString("SERVICE_TYPE"));
+			System.out.println(" a.Miles ="+rs1.getInt("MILES"));
+			System.out.println(" b.Months = "+rs1.getInt("MONTH"));
+			System.out.println(" e Parts List =");
+			
+			String query_for_parts= "SELECT PART_ID FROM REQUIRED_PARTS"
+					+ " WHERE REQUIRED_PARTS.MAKE = "+rs1.getString("MAKE")
+					+ " AND REQUIRED_PARTS.MODEL = " +rs1.getString("MODEL")
+					+ " AND REQUIRED_PARTS.SERVICE = "+rs1.getString("SERVICE_TYPE");
+			
+			System.out.println(query_for_parts);
+			
+			rs2= stmt.executeQuery(query_for_parts);
+			//get the result of the query 
+		  int k =0;
+			while (rs2.next()) {
+				k++;
+				System.out.println(+k+")"+rs2.getInt("PART_ID"));
+				
+			    		  
+			    }
+			k=0;
+			
+			}
+			}catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		
+		
+		System.out.println("Make : ");
+		
+		
+		
 		System.out.println("1.Go Back");
 		int n = reader.nextInt();
 		
@@ -375,7 +424,7 @@ Parts
 		
 		System.out.println("ORDER_ID,  ORDER_DATE        , PART_NAME, SUPPLIER_ID, PURCHASER_NAME/ID,QUANTITY, UNIT_PRICE , TOTAL COST , STATUS");   
 		try {
-			stmt = DBBuilder.getConnection().createStatement();
+		stmt = DBBuilder.getConnection().createStatement();
 		
 		rs= stmt.executeQuery(query);
 		//get the result of the query 
@@ -400,8 +449,6 @@ Parts
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
 		//provide option to go back
 		System.out.println("1.Go Back");
 		
