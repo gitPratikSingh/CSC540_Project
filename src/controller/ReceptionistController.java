@@ -7,13 +7,15 @@ import java.sql.Connection;
 import model.Car;
 import model.HasCars;
 import model.HasParts;
+import model.Orders;
 import model.Parts;
-
 import model.ServiceCenter;
 import model.Users;
 import model.Employees;
 import model.Customers;
+
 import java.text.DateFormat;
+
 import model.Booked;
 import model.Appointment;
 import model.Timeslots;
@@ -28,6 +30,7 @@ import java.util.HashMap;
 import java.util.Scanner;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+
 
 
 import db.DBBuilder;
@@ -104,11 +107,77 @@ public class ReceptionistController {
 					this.generateinvoice();
 					break;
 			
+			case "8": System.out.println("8");
+					this.taskUpdateInventory();
+					break;
+			case "9": System.out.println("8");
+					this.taskRecordDeliveries();
+					break;
 			}
 			
 		}
 	}
 	
+	private void taskRecordDeliveries() {
+		
+		System.out.println("The task finished running successfully ");
+
+		System.out.println("1.Enter Order ID (CSV)");
+		System.out.println("2.Go Back");
+		Scanner reply = new Scanner(System.in);
+		String response = reply.nextLine();
+		while (true) {
+			switch (response) {
+				case "2": this.landing_page();
+				  			break;
+				case "1": System.out.print("\n Please neter the order Ids");
+							for(String orderId : reply.nextLine().split(",")){
+								Orders.update(Integer.parseInt(orderId),  "completed");
+							}
+							
+							/*
+							 * 	NOTIFICATION_ID
+							 *  SERVICE_CENTER_ID
+								MESSAGE
+								NOTIF_DATE
+							 */
+							
+							Orders.generateNotif(new Timestamp(new Date().getTime()));
+	  						break;
+				default: this.landing_page();
+							break;
+			}
+		}
+		
+		
+	}
+
+
+	private void taskUpdateInventory() {
+		//Run a task to update the counts of parts to be used that day, basically adjusted (decrementing them) to reflect the fact the parts will be removed and actually used that day.
+		try{
+			Thread.sleep(4000);
+		}catch(Exception e){
+			
+		}
+		
+		System.out.println("The task finished running successfully \n");
+		System.out.println("1.Go Back");
+		Scanner reply = new Scanner(System.in);
+		String response = reply.nextLine();
+		while (true) {
+		switch (response) {
+		case "1": this.landing_page();
+				  break;
+		default: this.landing_page();
+			break;
+			}
+		}
+		
+		
+	}
+
+
 	public void get_profile() {
 		System.out.println("1.View Profile");
 		System.out.println("2.Update Profile");
