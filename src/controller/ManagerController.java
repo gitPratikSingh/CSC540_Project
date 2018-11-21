@@ -236,7 +236,7 @@ public class ManagerController {
 				+" Order by APPOINTMENT.appointment_id desc ";
 			
 		
-		System.out.println(query);
+		//System.out.println(query);
 		ResultSet rs;
 		Statement stmt;
 		try {
@@ -429,12 +429,12 @@ public class ManagerController {
 				for( int i=0; i<num_of_parts; i++) 
 				{
 					
-				System.out.println("INSERT INTO REQUIRED_PARTS(SERVICE_CENTER_ID, MAKE, MODEL, SERVICE_TYPE, PART_ID) VALUES ('"
+				/*System.out.println("INSERT INTO REQUIRED_PARTS(SERVICE_CENTER_ID, MAKE, MODEL, SERVICE_TYPE, PART_ID) VALUES ('"
 						+ManagerSid+"',"
 						+car_make+","
 						+car_model+","
 						+car_service_type+","
-						+part_ids[i] +")");
+						+part_ids[i] +")");*/
 				stmt.executeUpdate("INSERT INTO REQUIRED_PARTS(SERVICE_CENTER_ID, MAKE, MODEL, SERVICE_TYPE, PART_ID) VALUES ('"
 						+ManagerSid+"',"
 						+car_make+","
@@ -799,7 +799,7 @@ Compensation,Frequency,(monthly/hourly), Units (# of,hours/days),Earnings
 				+" JOIN HOURLY_PAYROLL ON PAYROLL.PAYROLL_ID =HOURLY_PAYROLL.PAYROLL_ID" 
 				+" WHERE EMPLOYEE_ID = '"+employee_id+"') A " 
 				+" ORDER BY A.payroll_id DESC";	
-		System.out.println(query); //debug query
+		//System.out.println(query); //debug query
 		System.out.println("Paycheck date  Pay_period  Employee_id  Employee_name, compensation, compensation frequency,Hours/days, current earnings, year to end earnings");
 		try {
 			stmt = DBBuilder.getConnection().createStatement();
@@ -903,7 +903,7 @@ Compensation,Frequency,(monthly/hourly), Units (# of,hours/days),Earnings
 			
 			String start_month="january";
 			int payroll_id = ManagerHelper.getNextPayrollId();
-			System.out.println(payroll_id);
+			//System.out.println(payroll_id);
 			int n = reader.nextInt();
 			if (n==1) { 
 		    // check if role matches
