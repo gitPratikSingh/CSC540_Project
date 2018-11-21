@@ -26,13 +26,13 @@ public class ManagerController {
 	
 	//default SID 
 	public static String ManagerSid = "S0001";
-	public static String ManagerEmployeeId =" ";
-	public static String ManagerEmailId="";
+	public static int ManagerEmployeeId = 950932130;
+	public static String ManagerEmailId="lacohen@acme.com";
 	public static String CurrentDate ="01/01/2018";
 
 	private static String query;
 	
-	public static void setManager(String service_center_id, String email, String employee_id)
+	public static void setManager(String service_center_id, String email, int employee_id)
 	{
 		ManagerSid = service_center_id;
 		ManagerEmployeeId=employee_id;
@@ -119,8 +119,8 @@ public class ManagerController {
 	public static void viewProfilenew() {
 		String query1 = "SELECT EMPLOYEE.EMPLOYEE_ID, USERS.EMAIL, USERS.NAME, USERS.ADDRESS, USERS.PHONE, EMPLOYEE.START_DATE, EMPLOYEE.MONTHLY_PAY, EMPLOYEE.HOURLY_PAY,has_manager.service_center_id,EMPLOYEE.role"
 				+"			FROM EMPLOYEE INNER JOIN HAS_MANAGER" 
-				+"			ON EMPLOYEE.EMPLOYEE_ID = HAS_MANAGER.EMPLOYEE_ID AND EMPLOYEE.EMPLOYEE_ID = '"+ManagerEmployeeId+"'"
-				+"			INNER JOIN USERS ON USERS.EMAIL = EMPLOYEE.EMAIL  AND EMPLOYEE.EMPLOYEE_ID ='"+ManagerEmployeeId+"'";
+				+"			ON EMPLOYEE.EMPLOYEE_ID = HAS_MANAGER.EMPLOYEE_ID AND EMPLOYEE.EMPLOYEE_ID = "+ ManagerEmployeeId 
+				+"			JOIN USERS ON USERS.EMAIL = EMPLOYEE.EMAIL";
 			
 			
 			

@@ -168,7 +168,7 @@ public class MainController {
 	        e.printStackTrace();
 	    }
 		
-		ManagerController.setManager(SERVICE_CENTER_ID, username, ""+EMPLOYEE_ID);
+		ManagerController.setManager(SERVICE_CENTER_ID, username, EMPLOYEE_ID);
 		ManagerController.defaultPage();
 		
 	}
