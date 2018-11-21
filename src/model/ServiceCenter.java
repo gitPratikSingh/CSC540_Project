@@ -1,9 +1,13 @@
 package model;
 
+import helpers.ManagerHelper;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -64,7 +68,7 @@ public class ServiceCenter {
 		} catch (SQLException e1) {
 			e1.printStackTrace();
 		}
-		//System.out.println("Make: "+makeModel[0]);
+
 		String servicesMilesThresholdsQuery = "select service_type, miles from basic_services where make = '"+ makeModel[0] 
 				+"' and model= '" + makeModel[1]+ "' and service_type is not null group by service_type, miles";
 		
@@ -156,27 +160,31 @@ public class ServiceCenter {
 		// once the servicetype is decided, find the parts, quantity, and time info
 		String newOrderQuery = "SELECT HAS_PARTS.part_id, HAS_PARTS.min_quantity_threshold, HAS_PARTS.min_order_threshold" + 
 		" FROM BASIC_SERVICES" +
-		" JOIN PARTS ON BASIC_SERVICES.part_name = PARTS.part_name" +
+		" JOIN PARTS ON BASIC_SERVICES.part_name = PARTS.part_name AND BASIC_SERVICES.make = PARTS.make" +
 		" JOIN HAS_PARTS ON HAS_PARTS.part_id = PARTS.part_id AND HAS_PARTS.service_center_id = '" + service_center_id +"'"+
 		" WHERE BASIC_SERVICES.make= '"+ makeModel[0] +
 		"' AND BASIC_SERVICES.model= '" + makeModel[1]+
 		"' AND BASIC_SERVICES.service_type = '" + serviceNeeded +
-		"' AND HAS_PARTS.current_quantity < BASIC_SERVICES.quantiy";
-		
-		
+		"' AND HAS_PARTS.current_quantity < BASIC_SERVICES.quantity";
+				
 		// see if the parts are available
 		boolean partsNotFoundInInventory = false;
+		Timestamp timestamp = new Timestamp(0);
 		try {
 			stmt = DBBuilder.getConnection().createStatement();
 	        //System.out.println(newOrderQuery);
 	        rs = stmt.executeQuery(newOrderQuery);
 	        while (rs.next()) {
-	 	       String service_type = rs.getString("PART_ID");
-	 	       if(service_type != null || service_type.equals(""))
-	 	    	   partsNotFoundInInventory = true; 
-	 	       
+	 	       int PART_ID = rs.getInt("PART_ID");
+	 	       int min_order_threshold = rs.getInt("min_order_threshold");
+ 	    	   partsNotFoundInInventory = true; 
 	 	       // order missing parts if no previous orders found!
-	 	       // todo
+ 	    	   if(Orders.orderExists(PART_ID, service_center_id) == false){
+ 	    		   Timestamp temp = newOrder(PART_ID, min_order_threshold, service_center_id);
+ 	    		   if(temp.after(timestamp)){
+ 	    			  timestamp = temp;
+ 	    		   }
+ 	    	   }
 	 	    }
 		} 
     	catch(Throwable e) {
@@ -235,6 +243,12 @@ public class ServiceCenter {
 		}else{
 			//show a message to the user asking him to try again after a specific date 
 			// (calculated based on when the order will be fulfilled).
+			if(new Timestamp(0).equals(timestamp) == false){
+				DateFormat format = new SimpleDateFormat( "yyyy-mm-dd h:mm a" );
+				String str = format.format( timestamp );
+				System.out.println("Please try after "+str);
+			}
+			
 			
 		}
 		serviceMake = makeModel[0];
@@ -354,26 +368,32 @@ public class ServiceCenter {
 		
 		String newOrderQuery = "SELECT HAS_PARTS.part_id, HAS_PARTS.min_quantity_threshold, HAS_PARTS.min_order_threshold" + 
 				" FROM BASIC_SERVICES" +
-				" JOIN PARTS ON BASIC_SERVICES.part_name = PARTS.part_name" +
+				" JOIN PARTS ON BASIC_SERVICES.part_name = PARTS.part_name AND BASIC_SERVICES.make = PARTS.make" +
 				" JOIN HAS_PARTS ON HAS_PARTS.part_id = PARTS.part_id AND HAS_PARTS.service_center_id = '" + service_center +"'"+
 				" WHERE BASIC_SERVICES.make= '"+ make +
 				"' AND BASIC_SERVICES.model= '" + model+
-				"' AND HAS_PARTS.current_quantity < BASIC_SERVICES.quantiy"
+				"' AND HAS_PARTS.current_quantity < BASIC_SERVICES.quantity"
 				+ " AND BASIC_SERVICES.SERVICE_NAME IN("+partsRequired+")";
 		
 		Statement stmt = null;
 		boolean partsNotFoundInInventory = false;
-		try {	
+		Timestamp timestamp = new Timestamp(0);
+		try {
 			stmt = DBBuilder.getConnection().createStatement();
 	        //System.out.println(newOrderQuery);
-			rs = stmt.executeQuery(newOrderQuery);
-			while (rs.next()) {
-		 	       String service_type = rs.getString("PART_ID");
-		 	       if(service_type != null || service_type.equals(""))
-		 	    	   partsNotFoundInInventory = true; 
+	        rs = stmt.executeQuery(newOrderQuery);
+	        while (rs.next()) {
+	 	       int PART_ID = rs.getInt("PART_ID");
+	 	       int min_order_threshold = rs.getInt("min_order_threshold");
+ 	    	   partsNotFoundInInventory = true; 
 		 	       
 		 	       // order missing parts if no previous orders found!
-		 	       // todo
+		 	      if(Orders.orderExists(PART_ID, service_center) == false){
+	 	    		   Timestamp temp = newOrder(PART_ID, min_order_threshold, service_center);
+	 	    		   if(temp.after(timestamp)){
+	 	    			  timestamp = temp;
+	 	    		   }
+	 	    	   }
 			}
 		} 
 		catch(Throwable e) {
@@ -427,6 +447,12 @@ public class ServiceCenter {
 			//show a message to the user asking him to try again after a specific date 
 			// (calculated based on when the order will be fulfilled).
 			
+			if(new Timestamp(0).equals(timestamp) == false){
+				DateFormat format = new SimpleDateFormat( "yyyy-mm-dd h:mm a" );
+				String str = format.format( timestamp );
+				System.out.println("Please try after "+str);
+			}
+			
 		}
 		
 		serviceMake = make;
@@ -438,7 +464,7 @@ public class ServiceCenter {
 
 	public static Timestamp[] getRescheduledNextTwoAvailableDates(int serviceId, String serviceType) {
 		
-		serviceNeeded= "";
+		serviceNeeded = "";
 		String[] makeModel = new String[2];
 		String LAST_SERVICE_TYPE="";
 		int LAST_RECORDED_MILES=0;
@@ -488,12 +514,12 @@ public class ServiceCenter {
 		// once the servicetype is decided, find the parts, quantity, and time info
 		String newOrderQuery = "SELECT HAS_PARTS.part_id, HAS_PARTS.min_quantity_threshold, HAS_PARTS.min_order_threshold" + 
 		" FROM BASIC_SERVICES" +
-		" JOIN PARTS ON BASIC_SERVICES.part_name = PARTS.part_name" +
+		" JOIN PARTS ON BASIC_SERVICES.part_name = PARTS.part_name AND BASIC_SERVICES.make = PARTS.make" +
 		" JOIN HAS_PARTS ON HAS_PARTS.part_id = PARTS.part_id AND HAS_PARTS.service_center_id = '" + service_center_id +"'"+
 		" WHERE BASIC_SERVICES.make= '"+ makeModel[0] +
 		"' AND BASIC_SERVICES.model= '" + makeModel[1]+
 		"' AND BASIC_SERVICES.service_type = '" + serviceNeeded +
-		"' AND HAS_PARTS.current_quantity < BASIC_SERVICES.quantiy";
+		"' AND HAS_PARTS.current_quantity < BASIC_SERVICES.quantity";
 		
 		
 		// see if the parts are available
@@ -523,10 +549,64 @@ public class ServiceCenter {
 		return timestamps;
 		
 	}
+	
+	public static Timestamp newOrder(int part_id, int quantity, String from_service_center_id)
+	{
+			
+			//other variable for the auto populate 
+			String distributor_id=null;
+			int delivery_window = -1;
+		
+			
+			String query= "SELECT DISTRIBUTOR_SUPPLIES_PARTS.DISTRIBUTOR_ID,DISTRIBUTOR_SUPPLIES_PARTS.DELIVERY_WINDOW FROM DISTRIBUTOR_SUPPLIES_PARTS "
+			+" WHERE PART_ID = "+part_id+" AND DELIVERY_WINDOW IS NOT NULL";
+			
+			
+			ResultSet rs;
+			Statement stmt;
+			try {
+				stmt = DBBuilder.getConnection().createStatement();
+			
+				rs= stmt.executeQuery(query);
+				if(rs.next()) {
+					distributor_id =rs.getString("DISTRIBUTOR_ID");
+					delivery_window =rs.getInt("DELIVERY_WINDOW");
+				}
+			 }
+			 catch (SQLException e) {
+					e.printStackTrace();
+			 }
+			
+			
+			String to_service_center_id = ManagerHelper.serviceCenter(part_id, from_service_center_id);
+			if(!(to_service_center_id.equals(" ")))
+			{
+				distributor_id = to_service_center_id;
+				delivery_window = 1;
+			}
+			
+			 			
+			
+			if (delivery_window ==-1)
+			{return new Timestamp(0);}
+			/*Details such as cost, order date, etc. should be automatically calculated and
+ 			the order status must be set as “pending”.After placing the
+			order, show a confirmation message with the order ID*/
+			
+			//function to create the order 
+			String status = "pending:"+ distributor_id;
+			Timestamp order_date = ManagerHelper.getCurrentTimestamp();
+			
+			Timestamp arrival_date = ManagerHelper.addDate(order_date, delivery_window);
+			status = status+":"+arrival_date.toString();
+	
+			Orders.create(from_service_center_id, order_date, part_id, quantity, status);
+			
+			return arrival_date;
+	}
 
 
-	public static Timestamp[] getRepairRescheduledNextTwoAvailableDates(
-			int serviceId, String sERVICE_TYPE) {
+	public static Timestamp[] getRepairRescheduledNextTwoAvailableDates(int serviceId, String sERVICE_TYPE) {
 		// TODO Auto-generated method stub
 		return null;
 	}

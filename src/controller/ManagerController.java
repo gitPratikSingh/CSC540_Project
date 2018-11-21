@@ -117,16 +117,58 @@ public class ManagerController {
 	}
 	public static void viewCustomerProfile()
 	{
-		System.out.println("Enter Customer ID");
-		int customer_id = reader.nextInt();
-		//retrieve the customer details"
+			String username;
+			System.out.println("Enter the email of the customer:");
+			username = reader.nextLine();
+			String query = "SELECT * FROM CUSTOMER WHERE email = '"+username+"'";
+			Statement stmt;
+			String customerid = "";
+			try {
+				stmt = DBBuilder.getConnection().createStatement();
+				ResultSet rs = stmt.executeQuery(query);
+							
+				while (rs.next()) {
+				   customerid = rs.getString("CUSTOMER_ID");
+				   String email = rs.getString("EMAIL");
+				   String name = rs.getString("NAME");
+				   String adr = rs.getString("ADDRESS");
+				   String phn = rs.getString("PHONE");
+				   System.out.println("Customer_ID :"+customerid);
+				   System.out.println("Email Address :"+email);
+				   System.out.println("Name :"+name);
+				   System.out.println("Address :"+adr);
+				   System.out.println("Phone :"+phn);
+				}
+				
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			
+			customerid = "'"+customerid+"'";
+			
+			query = "SELECT CAR.* FROM HAS_CARS JOIN CAR on(car.license_plate_number = has_cars.license_plate_number) WHERE customer_id ="+customerid;
+			try {
+				stmt = DBBuilder.getConnection().createStatement();
+				ResultSet rs = stmt.executeQuery(query);
+				System.out.println("LICENSE_PLATE_NUMBER,			MAKE, 			YEAR,			MODEL,			LAST_SERVICE_DATE,			LAST_SERVICE_TYPE, 			PURCHASE_DATE, 			LAST_RECORDED_MILES, 			SERVICE_CENTER_ID");
+				
+				while (rs.next()) {
+				   System.out.println(rs.getString("LICENSE_PLATE_NUMBER")+"		"+rs.getString("MAKE")+"		"+rs.getString("YEAR")+"		"+rs.getString("MODEL")+"		"+rs.getString("LAST_SERVICE_DATE")+"		"+rs.getString("LAST_SERVICE_TYPE")+"		"+rs.getString("PURCHASE_DATE")+"		"+rs.getString("LAST_RECORDED_MILES")+"		"+rs.getString("SERVICE_CENTER_ID")+"		");
+				}
+				
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 		
-		System.out.println("1.Go back");
-		int n = reader.nextInt();
-		if (n==1)
-		{
-			return;
-		}
+				
+			System.out.print("\n1. Go Back\n");
+			String response;
+			response = reader.nextLine();
+			switch(response){
+				case "1": defaultPage();
+			}
+			
+
 		
 	}
 	
@@ -192,25 +234,7 @@ public class ManagerController {
 	{
 		System.out.println("Car Service Details ");
 		//display all cars with details of service 
-		/*
-system.out.print(
-Make
-Model
-Year
-Service A:
-a. Miles
-b. Months
-c. Parts List
-E. Service B
-a. Miles
-b. Months
-c. Additional
-Parts
-F. Service C
-a. Miles
-b. Months
-c. Additional
-Parts*/
+
 		
 		String query_for_services = "SELECT * FROM SUPPORTED_SERVICES"; 
 	
@@ -233,11 +257,11 @@ Parts*/
 			System.out.println(" e Parts List =");
 			
 			String query_for_parts= "SELECT PART_ID FROM REQUIRED_PARTS"
-					+ " WHERE REQUIRED_PARTS.MAKE = "+rs1.getString("MAKE")
-					+ " AND REQUIRED_PARTS.MODEL = " +rs1.getString("MODEL")
-					+ " AND REQUIRED_PARTS.SERVICE = "+rs1.getString("SERVICE_TYPE");
+					+ " WHERE REQUIRED_PARTS.MAKE = '"+rs1.getString("MAKE")+"'"
+					+ " AND REQUIRED_PARTS.MODEL = '" +rs1.getString("MODEL")+"'"
+					+ " AND REQUIRED_PARTS.SERVICE_TYPE = '"+rs1.getString("SERVICE_TYPE")+"'";
 			
-			System.out.println(query_for_parts);
+			//System.out.println(query_for_parts);
 			
 			rs2= stmt.executeQuery(query_for_parts);
 			//get the result of the query 
@@ -257,7 +281,6 @@ Parts*/
 			}
 		
 		
-		System.out.println("Make : ");
 		
 		
 		
@@ -287,7 +310,7 @@ Parts*/
 		
 		String consume=reader.nextLine();
 		
-		System.out.println("Enter the Service type (service_a,service_b or service_c");
+		System.out.println("Enter the Service type (A,B or C");
 	    String car_service_type = reader.nextLine();
 	    
 	    System.out.println("a. Miles");
@@ -499,7 +522,7 @@ Parts*/
 					e.printStackTrace();
 				}
 			
-			String service_id= ManagerHelper.serviceCenter(part_id, ManagerSid);
+			String service_id= ManagerHelper.serviceCenter(part_id, ManagerSid,quantity);
 			if(!(service_id.equals(" ")))
 			{
 				distributor_id = service_id;
@@ -523,18 +546,22 @@ Parts*/
 			int n = reader.nextInt();
 			String service_center_id = ManagerSid;
 	
-			String status = "pending:"+ distributor_id;
+			String status = "pending,"+ distributor_id;
 			Timestamp order_date= ManagerHelper.getCurrentTimestamp();
 			
 			Timestamp arrival_date = ManagerHelper.addDate(order_date, delivery_window);
-			status = status+":"+arrival_date.toString();
+			status = status+","+arrival_date.toString();
 	
 			if (n==1)
 			{
 				
 				Orders.create(service_center_id, order_date, part_id, quantity, status);
+			
 				
 				System.out.println("order successfull");
+				
+			
+				
 				return;
 			}
 	
@@ -551,26 +578,12 @@ Parts*/
 
 	{
 		while(true) {
-		//display these 
-		/*
-		A. Notification ID
-		B. Notification
-		Date/Time
-		C. Order ID
-		D. Supplier Name
-		Choose 2 to go back.
-		Choose 2 to go back
-		to ​ Manager:
-		Landing page
-		27E. Expected
-		Delivery Date
-		F. Delayed by (# of
-		days)
-		*/
-		
-		//while(true) {
+
 		
 		System.out.println("A.Notification ID, Notification Time, Order ID, Supplier Name, Expected Delivery,delayed by days");
+		
+		
+		
 		
 		System.out.println("1.Order ID");
 		System.out.println("2.Go Back");
@@ -586,17 +599,7 @@ Parts*/
 	
 	public static void notificationDetailsPage()
 	{
-	/*
-		Order ID
-		Date
-		Part Name
-		Supplier Name
-		Purchaser Name
-		Quantity
-		Unit Price
-		Total Cost
-		Order Status
-		*/
+	
 		System.out.println("Enter the Order ID ");
 		String order_id = reader.nextLine();
 		
@@ -617,7 +620,6 @@ Parts*/
 		//get the result of the query 
 		
 	
-		
 	    while (rs.next()) {
 		       System.out.println(rs.getInt("ORDER_ID")+"		"
 		    		   +rs.getString("ORDER_DATE")+"		"
@@ -905,6 +907,9 @@ Compensation,Frequency,(monthly/hourly), Units (# of,hours/days),Earnings
 	{
 		//display the current profile 
 		//employee ID, phone number Email address, compensation, service centre 
+		
+		
+		
 		while(true) {
 		System.out.println("1.Edit My profile");
 		System.out.println("2.Go Back");
@@ -922,21 +927,27 @@ Compensation,Frequency,(monthly/hourly), Units (# of,hours/days),Earnings
 	
 	public static void editProfile() 
 	{
-		System.out.println("Choose (1-4) to edit");
-		System.out.println("1.emailaddress");
-		System.out.println("2.phone number");
-		System.out.println("3.Compensation");
+		System.out.println("1.View Profile");
+		System.out.println("2.Update Profile");
+		System.out.println("3.Go Back");
+		Scanner reply = new Scanner(System.in);
+		String response = reply.nextLine();
+		while (true) {
+		switch (response) {
+		case "1": viewProfile();
+				  break;
+		case "2": updateProfile();
+				  break;
+		case "3": defaultPage();
 		
-		//cannot edit employee ID, 
-		//String.format("%05d", your number);
-		System.out.println("1.write the change");
-		System.out.println("2.Go Back");
+		}
 		
 		int n = reader.nextInt();
 		
 		if(n==1)
 		{
 			System.out.println("Sucessfully edited");
+			
 		}
 		if(n==2)return;
 		

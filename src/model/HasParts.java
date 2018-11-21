@@ -48,6 +48,26 @@ public class HasParts {
 	
 	}
 
+public static void incr(String service_center_id, int part_id, int addquantity) {
+		
+		Statement stmt = null;
+		
+		String sql =  "Update Has_Parts Set current_quantity = current_quantity +" +addquantity+
+				" WHERE service_center_id = '" +service_center_id +"'"
+				+" AND part_id = " + part_id
+				;
+		
+		try {	
+			stmt = DBBuilder.getConnection().createStatement();
+	        //System.out.println(sql);
+			stmt.executeUpdate(sql);
+		} 
+		catch(Throwable e) {
+	        e.printStackTrace();
+	    }
+		
+	
+	}
 	
 	public static void create(int service_center_id, int part_id, int current_quantity, int min_quantity_threshold,
 			int min_order_threshold){

@@ -37,7 +37,7 @@ public class ManagerHelper {
 		}
 	
 	
-	   public static String serviceCenter(int part_id, String managerSid)
+	   public static String serviceCenter(int part_id, String managerSid, int count)
 	   {
 		   String result= null;
 		   
@@ -56,13 +56,17 @@ public class ManagerHelper {
 			    }
 			    else 
 			    	result=" ";
-				
+			 				
 				
 			} 
 	    	catch(Throwable e) {
 		        e.printStackTrace();
 		    }
+			
+			
+		
 				
+			
 		   return result;
 	   }
 	
