@@ -25,7 +25,7 @@ public class ManagerController {
 	static Scanner reader = new Scanner(System.in);
 	
 	//default SID 
-	public static String ManagerSid = "S0003";
+	public static String ManagerSid = "S0001";
 	public static String ManagerEmployeeId =" ";
 	public static String ManagerEmailId="";
 	public static String CurrentDate ="01/01/2018";
@@ -142,6 +142,7 @@ public class ManagerController {
 				
 			} catch (SQLException e) {
 				e.printStackTrace();
+				DBBuilder.close();
 			}
 			
 			customerid = "'"+customerid+"'";
@@ -158,6 +159,7 @@ public class ManagerController {
 				
 			} catch (SQLException e) {
 				e.printStackTrace();
+				DBBuilder.close();
 			}
 		
 				
@@ -205,6 +207,7 @@ public class ManagerController {
 	{
 		System.out.println("Service History");
 		/* display all the services of the car 
+		 *
 		Service ID
 		Customer Name
 		License Plate
@@ -221,6 +224,47 @@ public class ManagerController {
 		Ongoing, or
 		Complete)
 */
+
+		String query =" SELECT APPOINTMENT.appointment_id,CUSTOMER.NAME, BOOKED.license_plate_number, APPOINTMENT.service_type, USERS.name as MechanicName,"
+				+" TIMESLOTS.start_time, TIMESLOTS.end_time, APPOINTMENT.status FROM BOOKED"
+				+" JOIN APPOINTMENT ON BOOKED.appointment_id = APPOINTMENT.appointment_id "
+				+" LEFT JOIN EMPLOYEE ON EMPLOYEE.employee_id = APPOINTMENT.preferred_mechanic" 
+				+" LEFT JOIN USERS ON EMPLOYEE.email = USERS.email "
+				+" JOIN TIMESLOTS ON TIMESLOTS.service_center_id = BOOKED.service_center_id AND TIMESLOTS.start_time = APPOINTMENT.start_time"
+				+" JOIN CUSTOMER ON CUSTOMER.CUSTOMER_ID = BOOKED.CUSTOMER_ID"
+				+" WHERE BOOKED.SERVICE_CENTER_ID = '"+ManagerSid+"'"
+				+" Order by APPOINTMENT.appointment_id desc ";
+			
+		
+		System.out.println(query);
+		ResultSet rs;
+		Statement stmt;
+		try {
+			stmt = DBBuilder.getConnection().createStatement();
+		
+			rs= stmt.executeQuery(query);
+			while(rs.next()) {
+				 System.out.println(rs.getInt("PART_ID")+"     "
+						 +rs.getString("NAME")+"     "
+						 +rs.getString("LICENSE_PLATE_NUMBER")+"     "
+						 +rs.getString("SERVICE_TYPE")+"     "
+						 +rs.getString("MECHANICNAME")+"     "
+						 +rs.getString("START_TIME")+"     "
+						 +rs.getString("END_TIME")+"    "
+						 +rs.getString("STATUS")+"   ");
+						
+			}
+		
+			//get the result of the query 
+			   
+		    }
+		 catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				DBBuilder.close();
+			}
+		
+		
 		
 		System.out.println("1.Go Back");
 		int n = reader.nextInt();
@@ -278,6 +322,7 @@ public class ManagerController {
 			}catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				DBBuilder.close();
 			}
 		
 		
@@ -400,6 +445,7 @@ public class ManagerController {
 			} 
 			catch(Throwable e) {
 		        e.printStackTrace();
+		    	DBBuilder.close();
 		    }	
 			
 			System.out.println("car added successfully");
@@ -471,6 +517,7 @@ public class ManagerController {
 		}catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			DBBuilder.close();
 		}
 		//provide option to go back
 		System.out.println("1.Go Back");
@@ -490,8 +537,13 @@ public class ManagerController {
 			System.out.println("Part ID ");
 			int part_id = reader.nextInt();
 			
+		
+			
 			System.out.println("Quantity");
 			int quantity = reader.nextInt();
+			
+		//	quan_min = getMinOrderThreshold(part_id); do the min flow
+			
 			
 			//other variable for the auto populate 
 			String distributor_id=null;
@@ -520,6 +572,7 @@ public class ManagerController {
 			 catch (SQLException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
+					DBBuilder.close();
 				}
 			
 			String service_id= ManagerHelper.serviceCenter(part_id, ManagerSid,quantity);
@@ -636,6 +689,7 @@ public class ManagerController {
 		}catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			DBBuilder.close();
 		}
 		
 		System.out.println("1.Go back");
@@ -668,9 +722,17 @@ public class ManagerController {
 		rs= stmt.executeQuery(query);
 		//get the result of the query 
 		
+		
+		
+		
 	
 		
 	    while (rs.next()) {
+	    	
+	    	
+	    	
+	    	
+	  
 		       System.out.println(rs.getString("PART_ID")+"		"
 		    		   +rs.getString("PART_NAME")+"		"
 		    		   +rs.getString("CURRENT_QUANTITY")+"		"
@@ -684,6 +746,7 @@ public class ManagerController {
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			DBBuilder.close();
 		}
 		
 		System.out.println("1 Goback ");
@@ -724,6 +787,7 @@ Compensation,Frequency,(monthly/hourly), Units (# of,hours/days),Earnings
 		}catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			DBBuilder.close();
 		}
 		
 		if (payroll_type.equals(Constants.HOURLY_PAYROLL))
@@ -754,6 +818,7 @@ Compensation,Frequency,(monthly/hourly), Units (# of,hours/days),Earnings
 		}catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			DBBuilder.close();
 		}
 		
 	}	else if(payroll_type.equals(Constants.MONTHLY_PAYROLL)) {
@@ -784,6 +849,7 @@ Compensation,Frequency,(monthly/hourly), Units (# of,hours/days),Earnings
 		}catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			DBBuilder.close();
 		}
 		
 	}
@@ -924,6 +990,10 @@ Compensation,Frequency,(monthly/hourly), Units (# of,hours/days),Earnings
 		 }
 		}
 	}
+	public static void updateProfile()
+	{
+		
+	}
 	
 	public static void editProfile() 
 	{
@@ -939,23 +1009,11 @@ Compensation,Frequency,(monthly/hourly), Units (# of,hours/days),Earnings
 		case "2": updateProfile();
 				  break;
 		case "3": defaultPage();
-		
-		}
-		
-		int n = reader.nextInt();
-		
-		if(n==1)
-		{
-			System.out.println("Sucessfully edited");
-			
-		}
-		if(n==2)return;
-		
+		}}
 		//action go back to default page
 	}
 	
 
-	
 	public static void main(String [] args) {
 	  defaultPage();
 		
