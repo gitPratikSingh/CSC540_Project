@@ -727,22 +727,85 @@ private int checkNumericalInput(int startNum, int endNum) {
 		    }
 			
 		
-	private Float getdiagfee(String repair_name) {
-		String query = "select diagnostic_fee from repairs where repair_name = '"+repair_name+"'";
+	private Float getdiagfee(String repairName) {
 		Float fees = 0f;
-		Statement stmt;
-		try {
-			stmt = DBBuilder.getConnection().createStatement();
-			ResultSet rs = stmt.executeQuery(query);
-		    while (rs.next()) {
-		    	fees = Float.parseFloat(rs.getString("diagonistic_fee"));
-		    }
+		if(repairName.equalsIgnoreCase("Engine knock")){
+			fees = 75.0f ;
 		}
-		catch (SQLException e) {
-			e.printStackTrace();}
+		
+		if(repairName.equalsIgnoreCase("Car drifts in a particular direction")){
+			fees = 50.0f ;
+		}
+		
+		if(repairName.equalsIgnoreCase("Battery does not hold charge")){
+			fees = 25.0f;
+		}
+		
+		if(repairName.equalsIgnoreCase("Black/unclean exhaust")){
+			fees = 75.0f;
+		}
+		
+		if(repairName.equalsIgnoreCase("A/C-Heater not working")){
+			fees = 50.0f;
+		}
+		
+		if(repairName.equalsIgnoreCase("Headlamps/Tail lamps not working")){
+			fees = 30.0f;
+		}
+		
+		if(repairName.equalsIgnoreCase("Check engine")){
+			fees = 100.0f;
+	}
+		
 		return fees;
 		
 	}
+	
+	private ArrayList<String> getBSSfromRepairs(String repairName){
+		ArrayList<String> list = new ArrayList<>();
+		if(repairName.equalsIgnoreCase("Engine knock")){
+			list.add("Drive belt replacement");
+			list.add("Spark plugs replacement");
+			list.add("Camshaft replacement");
+			list.add("Valve replacement");
+		}
+		
+		if(repairName.equalsIgnoreCase("Car drifts in a particular direction")){
+			list.add("Wheel alignment");
+		}
+		
+		if(repairName.equalsIgnoreCase("Battery does not hold charge")){
+			list.add("​​Battery replacement");
+		}
+		
+		if(repairName.equalsIgnoreCase("Black/unclean exhaust")){
+			list.add("​​​​Air filter change");
+			list.add("​​​​Oil filter change");
+			list.add("Catalytic convertor replacement");
+		}
+		
+		if(repairName.equalsIgnoreCase("A/C-Heater not working")){
+			list.add("​​​​Air filter change");
+			list.add("​​​​Oil filter change");
+			list.add("Catalytic convertor replacement");
+		}
+		
+		if(repairName.equalsIgnoreCase("Headlamps/Tail lamps not working")){
+			list.add("​​​​​​Headlights replacement");
+			list.add("​​​​Tail lights replacement");
+			list.add("Turn lights");
+		}
+		
+		if(repairName.equalsIgnoreCase("Check engine")){
+			list.add("​​​​​​Piston replacement");
+			list.add("​​​​Gear box repair");
+			list.add("Camshaft replacement");
+			list.add("Valve replacement");
+	}
+		return list;
+	}
+	
+	
 	
 	private void generateinvoice() {
 		System.out.println("Enter customer email address");
@@ -796,7 +859,8 @@ private int checkNumericalInput(int startNum, int endNum) {
 		    			 break;
 		    	}}
 		    	else {
-		    		BSS_LIST.addAll(get_BSS_for_repair(service_type,make,model));
+		    		BSS_LIST.addAll(getBSSfromRepairs(service_type));
+		    		//BSS_LIST.addAll(get_BSS_for_repair(service_type,make,model));
 		    	}
 		    	System.out.println("BSS_LIST: "+BSS_LIST);
 		    	System.out.println("A.Service ID : "+service_id);
