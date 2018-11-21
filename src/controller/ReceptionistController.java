@@ -3,6 +3,7 @@
 package controller;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 
 import model.Car;
 import model.HasCars;
@@ -102,6 +103,7 @@ public class ReceptionistController {
 					this.scheduleService();
 					break;
 			case "6": System.out.println("6");
+					this.reScheduleService();
 					break;
 			case "7": System.out.println("7");
 					this.generateinvoice();
@@ -117,6 +119,204 @@ public class ReceptionistController {
 			
 		}
 	}
+	
+	
+private int checkNumericalInput(int startNum, int endNum) {
+		
+		String input = scanner.nextLine();
+		try {
+			int inputNum = Integer.parseInt(input);
+			if (inputNum >= startNum && inputNum <= endNum) {
+
+				return inputNum;
+			}
+		} catch (Exception e) {
+			System.out.printf("Please input a value between %d and %d inclusive.\n", startNum, endNum);
+			return -1;
+		}
+		System.out.printf("Please input a value between %d and %d inclusive.\n", startNum, endNum);
+		return -1;
+}
+	
+	private void reScheduleService() {
+		
+		System.out.print("\n Please enter the Email address of the customer\n");
+		username = scanner.nextLine();
+		String customerID = this.getcustomerid(username);
+		
+		// Display the following details for all upcoming services for this customer, followed by the menu
+		System.out.print("\n All upcoming services\n");
+		
+		String query = "SELECT APPOINTMENT.appointment_id, BOOKED.license_plate_number, APPOINTMENT.service_type, USERS.name as MechanicName, "
+				+ "		TIMESLOTS.start_time, TIMESLOTS.end_time, APPOINTMENT.status FROM BOOKED"
+				+ "		JOIN APPOINTMENT ON BOOKED.appointment_id = APPOINTMENT.appointment_id "
+				+ "		LEFT JOIN EMPLOYEE ON EMPLOYEE.employee_id = APPOINTMENT.preferred_mechanic "
+				+ "		LEFT JOIN USERS ON EMPLOYEE.email = USERS.email "
+				+ "		JOIN TIMESLOTS ON TIMESLOTS.service_center_id = BOOKED.service_center_id AND TIMESLOTS.start_time = APPOINTMENT.start_time	"
+				+ "		WHERE APPOINTMENT.status='pending' AND customer_id = '" + customerID +"'"
+				+ " Order by APPOINTMENT.appointment_id desc"; 
+		
+		
+		
+		Statement stmt;
+		String customerid = "";
+		try {
+			stmt = DBBuilder.getConnection().createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			
+			System.out.println("ServiceID"
+					+ "		LicensePlate"
+					+ "		ServiceType"
+					+ "		MechanicName"
+					+ "		ServiceStart Time"
+					+ "		Service End Time");
+		    
+		    while (rs.next()) {
+		       System.out.println(rs.getString("APPOINTMENT_ID")+"		"
+		    		   +rs.getString("LICENSE_PLATE_NUMBER")+"		"
+		    		   +rs.getString("SERVICE_TYPE")+"		"
+		    		   +rs.getString("MECHANICNAME")+"		"
+		    		   +rs.getString("START_TIME")+"		"
+		    		   +rs.getString("END_TIME")+"		");
+		    }
+		    
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		System.out.print("\n1. Pick a service 2. Go Back");
+		
+		switch (checkNumericalInput(1, 2)) {
+		case -1:
+			reScheduleService();
+			break;
+		case 1:
+			System.out.print("\nEnter the service Id\n");
+			try{
+				int serviceId = scanner.nextInt();
+				reScheduleService(serviceId);
+				
+			}catch(Exception e){
+				System.out.print("\nPlease enter a correct service Id\n");
+				reScheduleService();
+			}
+			break;
+		case 2:
+			this.landing_page();
+			break;
+		default:
+			break;
+		}
+		
+	}
+	private void reScheduleService(int serviceId) {
+		// find two earliest available maintenance/repair dates that are at least one day after the current service date
+		Timestamp[] availableTimeslots = null;
+		// if serviceType = 'A'/'B'/'C'
+		String sql =  "Select APPOINTMENT.START_TIME from APPOINTMENT WHERE APPOINTMENT.appointment_id = "+ serviceId;
+		Timestamp ts = null;	
+		try {	
+			Statement stmt = DBBuilder.getConnection().createStatement();
+	        System.out.println(sql);
+			ResultSet rs = stmt.executeQuery(sql);
+			
+			while(rs.next()){
+				ts = rs.getTimestamp(1);
+			}
+		} 
+		catch(Throwable e) {
+	        e.printStackTrace();
+	    }
+		
+		sql =  "Select BOOKED.License_Plate_Number, BOOKED.SERVICE_CENTER_ID from BOOKED WHERE BOOKED.appointment_id = "+ serviceId;
+		String licensePlateNumber = "", service_center_id = "";
+		try {	
+			Statement stmt = DBBuilder.getConnection().createStatement();
+	        System.out.println(sql);
+			ResultSet rs = stmt.executeQuery(sql);
+			
+			while(rs.next()){
+				licensePlateNumber = rs.getString(1);
+				service_center_id = rs.getString(2);
+			}
+		} 
+		catch(Throwable e) {
+	        e.printStackTrace();
+	    }
+		
+		Timestamp te = Timeslots.getEndTime(service_center_id, ts);
+		String status = Timeslots.getStatus(service_center_id, ts);
+		
+		Timestamp nts1 = new Timestamp(0);
+		Timestamp nte1 = new Timestamp(0);
+		
+		nts1.setTime(ts.getTime() + (((24 * 60 * 60))* 1000));
+		nte1.setTime(te.getTime() + (((24 * 60 * 60))* 1000));
+		
+		Timestamp nts2 = new Timestamp(0);
+		Timestamp nte2 = new Timestamp(0);
+		
+		nts2.setTime(nts1.getTime() + (((1 * 60))* 1000));
+		nte2.setTime(nte1.getTime() + (((1 * 60))* 1000));
+		
+		System.out.println("Available on the folloing date and time");
+		DateFormat format = new SimpleDateFormat( "yyyy-dd-MM h:mm a" );
+		String str1 = format.format( nts1 );
+		String str2 = format.format( nts2 );
+		
+		System.out.println(str1);
+		System.out.println(str2);
+		
+		System.out.println("Select 1 for the first date, 2 for the last date\n");
+		
+		switch (checkNumericalInput(1, 2)) {
+		case 1:
+			Timeslots.create(service_center_id, nts1, nte1, status);
+			
+			PreparedStatement cursor;
+			try {
+				cursor = DBBuilder.getConnection()
+						.prepareStatement("UPDATE APPOINTMENT SET START_TIME = ? WHERE appointment_id = ?");	
+				
+				 cursor.setInt(2, serviceId);
+				 cursor.setTimestamp(1, nts1);
+				 cursor.executeUpdate();
+				 
+				 ///System.out.println("Service reschduled!");
+
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			break;
+		case 2:
+			Timeslots.create(service_center_id, nts2, nte2, status);
+			
+			PreparedStatement cursor1;
+			try {
+				cursor1 = DBBuilder.getConnection()
+						.prepareStatement("UPDATE APPOINTMENT SET START_TIME = ? WHERE appointment_id = ?");	
+				
+				 cursor1.setInt(2, serviceId);
+				 cursor1.setTimestamp(1, nts2);
+				 cursor1.executeUpdate();
+
+				 //System.out.println("Service reschduled!");
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			break;
+		case -1:
+			reScheduleService(serviceId);
+			break;
+		default:
+			break;
+		}
+		
+		this.landing_page();
+	}
+
 	
 	private void taskRecordDeliveries() {
 		
@@ -420,7 +620,7 @@ public class ReceptionistController {
 		
 	private ArrayList<String> get_BSS_for_repair(String repair, String model, String make) {
 		String query = "select Basic_services.service_name from Basic_services"
-		+" join Repairs on Basic_services.BASIC_SERVICE_ID = repairs.BASIC_SERVICE_ID"
+		+" join Repairs on Basic_services.BS_ID = repairs.BASIC_SERVICE_ID"
 		+" where model='"+model+"' AND make='"+make+"' AND repair_name='"+repair+"'";
 		System.out.println(query);
 		ArrayList<String> bss = new ArrayList<String>();
@@ -858,13 +1058,249 @@ public class ReceptionistController {
 		switch(response) {
 		case "1": scheduleMaintenance(username,lplate, mileage, mname);
 				  break;
-		//case "2": scheduleRepair(lplate, mileage, mname);
-		//		  break;
+		case "2": scheduleRepair(username,lplate, mileage, mname);
+				  break;
 		case "3": this.landing_page();
 				  break;
 		}
 		}
 		
+	private void scheduleRepair(String username,String lplate, int mileage, String mname) {
+		
+		System.out.println("1.Engine knock");
+		System.out.println("2.Car drifts in a particular direction");
+		System.out.println("3.Battery does not hold charge");
+		System.out.println("4.Black/unclean exhaust");
+		System.out.println("5.A/C-Heater not working");
+		System.out.println("6.Headlamps/Tail lamps not working");
+		System.out.println("7.Check engine");
+		String response = scanner.nextLine();
+		switch (response) {
+		case "1":
+			scheduleRepairType("Engine knock", username, lplate, mileage, mname);
+			break;
+		case "2":
+			scheduleRepairType("Car drifts in a particular direction",username, lplate, mileage, mname);
+			break;
+		case "3":
+			scheduleRepairType("Battery does not hold charge", username,lplate, mileage, mname);
+			break;
+		case "4":
+			scheduleRepairType("Black/unclean exhaust",username, lplate, mileage, mname);
+			break;
+		case "5":
+			scheduleRepairType("A/C-Heater not working", username,lplate, mileage, mname);
+			break;
+		case "6":
+			scheduleRepairType("Headlamps/Tail lamps not working",username, lplate, mileage, mname);
+			break;
+		case "7":
+			scheduleRepairType("Check engine",username, lplate, mileage, mname);
+			break;
+		case "8":
+			this.landing_page();
+			break;
+		default:
+			break;
+		}
+		
+	}
+	
+	private void scheduleRepairType(String repairName, String username , String lplate, int mileage, String mname) {
+		/*
+		 * create a diagnostic report showing the list of causes and parts needed to 
+		 * resolve them based on the problem selected. This report is to be displayed next.
+		 * 
+		 * Display the diagnostic report and the two identified service dates 
+		 * and mechanic name found based on the inputs in the previous page 
+		 * to the user, followed by the menu.
+		 * 
+		 * 
+	 	1. Engine knock:
+			a. Diagnostic: ​​Timing issue
+			b. Diagnostic fee:​​ $75
+			c. Service: ​​Drive belt replacement, Spark plugs replacement, Camshaft replacement, Valve replacement
+		2. Car drifts in a particular direction
+			a. Diagnostic: ​​Wheel alignment issue
+			b. Diagnostic fee:​​ $50
+			c. Service: ​​Wheel alignment
+		3. Battery does not hold charge
+			a. Diagnostic: ​​Battery needs replacement
+			b. Diagnostic fee:​​ $25
+			c. Service: ​​Battery replacement
+		4. Black/unclean exhaust
+			a. Diagnostic: ​​Bad catalytic convertor and filters
+			b. Diagnostic fee:​​ $75
+			c. Service: ​​Air filter change,​ ​​Oil filter change, Catalytic convertor replacement
+		5. A/C-Heater not working
+			a. Diagnostic: ​​Drive belt damaged, coolant not enough, weak battery
+			b. Diagnostic fee:​​ $50
+			c. Service: ​​Drive belt replacement, coolant recycle, Battery replacement
+		6. Headlamps/Tail lamps not working
+			a. Diagnostic: Light assembly damaged
+			b. Diagnostic fee:​​ $30
+			c. Service: ​​Headlights replacement, Tail lights replacement, Turn lights
+			replacement
+		7. Check
+			a. Diagnostic: Gearbox and Torque convertor issue
+			b. Diagnostic fee:​​ $100
+			c. Service: ​​Piston replacement, Gear box repair, Camshaft replacement, Valve replacement
+		 * */
+		
+		String daignosticReport = "";
+		Timestamp[] Timestamps = null;
+		ArrayList<String> list = new ArrayList<>();
+
+		
+		if(repairName.equalsIgnoreCase("Engine knock")){
+			daignosticReport = "\n Diagnostic Report\n Caused By: ​​Timing issue\n Parts needed to be changed are: ​​Drive belt replacement, Spark plugs replacement, Camshaft replacement, Valve replacement";
+			// todo // generate an invoice of Diagnostic fee:​​ $75
+			list.add("Drive belt replacement");
+			list.add("Spark plugs replacement");
+			list.add("Camshaft replacement");
+			list.add("Valve replacement");
+			Timestamps = findNextAvailableTwoRepairDates(username,lplate, mileage, mname, list);
+		}
+		
+		if(repairName.equalsIgnoreCase("Car drifts in a particular direction")){
+			daignosticReport = "\n Diagnostic Report\n Caused By: ​​Wheel alignment issue\n Parts needed to be changed are: ​​Wheel alignment";
+			// todo // generate an invoice of Diagnostic fee:​​ $50
+			list.add("Wheel alignment");
+			Timestamps = findNextAvailableTwoRepairDates(username,lplate, mileage, mname, list);
+		}
+		
+		if(repairName.equalsIgnoreCase("Battery does not hold charge")){
+			daignosticReport = "\n Diagnostic Report\n Caused By: ​​​​Battery needs replacement\n Parts needed to be changed are: ​​Battery replacement";
+			// todo // generate an invoice of Diagnostic fee:​​ $25
+			list.add("​​Battery replacement");
+			Timestamps = findNextAvailableTwoRepairDates(username,lplate, mileage, mname, list);
+		}
+		
+		if(repairName.equalsIgnoreCase("Black/unclean exhaust")){
+			daignosticReport = "\n Diagnostic Report\n Caused By: ​​​​Bad catalytic convertor and filters\n Parts needed to be changed are: ​​Air filter change,​ ​​Oil filter change, Catalytic convertor replacement";
+			// todo // generate an invoice of Diagnostic fee:​​ $75
+			list.add("​​​​Air filter change");
+			list.add("​​​​Oil filter change");
+			list.add("Catalytic convertor replacement");
+			Timestamps = findNextAvailableTwoRepairDates(username,lplate, mileage, mname, list);
+		}
+		
+		if(repairName.equalsIgnoreCase("A/C-Heater not working")){
+			daignosticReport = "\n Diagnostic Report\n Caused By: Drive belt damaged, coolant not enough, weak battery\n Parts needed to be changed are: ​​Air filter change,​ ​​Oil filter change, Catalytic convertor replacement";
+			// todo // generate an invoice of Diagnostic fee:​​ $75
+			list.add("​​​​Air filter change");
+			list.add("​​​​Oil filter change");
+			list.add("Catalytic convertor replacement");
+			Timestamps = findNextAvailableTwoRepairDates(username,lplate, mileage, mname, list);
+		}
+		
+		if(repairName.equalsIgnoreCase("Headlamps/Tail lamps not working")){
+			daignosticReport = "\n Diagnostic Report\n Caused By: Light assembly damaged\n Parts needed to be changed are: ​​Headlights replacement, Tail lights replacement, Turn lights";
+			// todo // generate an invoice of Diagnostic fee:​​ $75
+			list.add("​​​​​​Headlights replacement");
+			list.add("​​​​Tail lights replacement");
+			list.add("Turn lights");
+			Timestamps = findNextAvailableTwoRepairDates(username,lplate, mileage, mname, list);
+		}
+		
+		if(repairName.equalsIgnoreCase("Check engine")){
+			daignosticReport = "\n Diagnostic Report\n Caused By: Gearbox and Torque convertor issue\n Parts needed to be changed are: ​​Piston replacement, Gear box repair, Camshaft replacement, Valve replacement";
+			// todo // generate an invoice of Diagnostic fee:​​ $75
+			list.add("​​​​​​Piston replacement");
+			list.add("​​​​Gear box repair");
+			list.add("Camshaft replacement");
+			list.add("Valve replacement");
+			Timestamps = findNextAvailableTwoRepairDates(username,lplate, mileage, mname, list);
+		}
+		
+		System.out.print(daignosticReport);
+		System.out.print("\nTwo identified service dates are \n");
+		
+		DateFormat format = new SimpleDateFormat( "yyyy-dd-MM h:mm a" );
+		String str1 = format.format( Timestamps[0] );
+		String str2 = format.format( Timestamps[2] );
+		
+		System.out.println("\nSelect 1 for the first date, 2 for the second date\n");
+		System.out.print("1. "+str1);
+		System.out.print("\n2. "+str2);
+		
+		String response = scanner.nextLine();
+		switch (response) {
+		case "1":
+			scheduleTheRepairDate(username,lplate, Timestamps[0], Timestamps[1], mname);
+			break;
+		case "2":
+			scheduleTheRepairDate(username,lplate, Timestamps[2], Timestamps[3],  mname);
+			break;
+		default:
+			break;
+		}
+		
+	}
+	
+	private Timestamp[] findNextAvailableTwoRepairDates(String username,String lplate, int mileage, String mname, ArrayList<String> partList) {
+		
+		String city = Customers.getCity(username);
+		String service_center = ServiceCenter.findByCity(city);
+		
+		Timestamp[] availableTimeslots = ServiceCenter.getNextTwoAvailableDatesForRepair(service_center, lplate, mileage, partList, mname);
+		
+		return availableTimeslots;
+	}
+	
+	
+	private void scheduleTheRepairDate(String username,String lplate, Timestamp start_time,Timestamp end_time, String mname) {
+		String city = Customers.getCity(username);
+		String service_center = ServiceCenter.findByCity(city);
+		String customerId = this.getcustomerid(username);
+		
+		Timeslots.create(service_center, start_time, end_time, "repair");
+		int app_id = Appointment.create("pending", start_time, "repair", mname);
+		Booked.create(customerId, service_center, app_id, lplate);
+		
+		// remove the parts from the inventory
+		
+		int part_id = 0, current_quantity = 0;
+		
+		// once the servicetype is decided, find the parts, quantity, and time info
+		String newOrderQuery = "SELECT HAS_PARTS.part_id, BASIC_SERVICES.quantity, HAS_PARTS.current_quantity" + 
+				" FROM BASIC_SERVICES" +
+				" JOIN PARTS ON BASIC_SERVICES.part_name = PARTS.part_name" +
+				" JOIN HAS_PARTS ON HAS_PARTS.part_id = PARTS.part_id AND HAS_PARTS.service_center_id = '" + service_center +"'"+
+				" WHERE BASIC_SERVICES.make= '"+ ServiceCenter.serviceMake +
+				"' AND BASIC_SERVICES.model= '" + ServiceCenter.serviceModel+
+				"' AND BASIC_SERVICES.SERVICE_NAME IN("+ServiceCenter.partsRequired+")";
+			
+			
+			// see if the parts are available
+			boolean partsNotFoundInInventory = false;
+			try {
+				Statement stmt = DBBuilder.getConnection().createStatement();
+		        //System.out.println(newOrderQuery);
+		        ResultSet rs = stmt.executeQuery(newOrderQuery);
+		        while (rs.next()) {
+		 	       int partId = rs.getInt("PART_ID");
+		 	       int quantiy = rs.getInt("quantity");
+		 	       current_quantity = rs.getInt("current_quantity");
+		 	       HasParts.update(service_center, partId, current_quantity - quantiy);
+		 	       // order missing parts if no previous orders found!
+		 	      
+		 	    }
+			} 
+			catch(Throwable e) {
+		        e.printStackTrace();
+		    }
+		
+		HasParts.update(service_center, part_id, current_quantity);
+		
+		DateFormat format = new SimpleDateFormat( "yyyy-mm-dd h:mm a" );
+		String str = format.format( start_time );
+		System.out.println("\nService booked on "+str);
+		this.landing_page();
+		
+	}
+
+	
 
 	private void scheduleMaintenance(String username,String lplate, int mileage, String mname) {
 		
@@ -889,7 +1325,7 @@ public class ReceptionistController {
 	private void findNextAvailableTwoServiceDates(String username,String lplate, int mileage, String mname) {
 		
 		
-		String city = Customers.getCity(this.username);
+		String city = Customers.getCity(username);
 		String service_center = ServiceCenter.findByCity(city);
 		
 		Timestamp[] availableTimeslots = ServiceCenter.getNextTwoAvailableDates(service_center, lplate, mileage);
