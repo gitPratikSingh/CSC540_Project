@@ -625,7 +625,7 @@ private int checkNumericalInput(int startNum, int endNum) {
 		String query = "select Basic_services.service_name from Basic_services"
 		+" join Repairs on Basic_services.BS_ID = repairs.BASIC_SERVICE_ID"
 		+" where model='"+model+"' AND make='"+make+"' AND repair_name='"+repair+"'";
-		System.out.println(query);
+		//System.out.println(query);
 		ArrayList<String> bss = new ArrayList<String>();
 		Statement stmt;
 		try {
@@ -814,7 +814,7 @@ private int checkNumericalInput(int startNum, int endNum) {
 		System.out.println("Enter customer email address");
 		String email = scanner.nextLine();
 		String customer_id = getcustomerid(email);
-		System.out.println("customer_id :"+customer_id);
+		//System.out.println("customer_id :"+customer_id);
 		
 		
 		String query = "SELECT APPOINTMENT.appointment_id, BOOKED.license_plate_number, car.make, car.model,APPOINTMENT.service_type, USERS.name as MechanicName, "
@@ -865,7 +865,7 @@ private int checkNumericalInput(int startNum, int endNum) {
 		    		BSS_LIST.addAll(getBSSfromRepairs(service_type));
 		    		//BSS_LIST.addAll(get_BSS_for_repair(service_type,make,model));
 		    	}
-		    	System.out.println("BSS_LIST: "+BSS_LIST);
+		    	//System.out.println("BSS_LIST: "+BSS_LIST);
 		    	System.out.println("A.Service ID : "+service_id);
 		    	System.out.println("B.Service Start Date/Time : "+service_start_time);
 		    	System.out.println("C.Service End Date/Time : "+service_end_time);
