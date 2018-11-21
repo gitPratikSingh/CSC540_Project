@@ -101,6 +101,7 @@ public class ReceptionistController {
 			case "6": System.out.println("6");
 					break;
 			case "7": System.out.println("7");
+			       this.generateinvoice();
 					break;
 			}
 			

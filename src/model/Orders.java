@@ -44,6 +44,7 @@ public class Orders {
 	public static void create(String service_center_id, Timestamp order_date, int part_id, int quantity, String status) {
 		
 		Statement stmt = null;
+		ResultSet rs=null;
 	
 		status = "'"+status+"'";
 		service_center_id= "'"+service_center_id+"'";
@@ -65,6 +66,23 @@ public class Orders {
     	catch(Throwable e) {
 	        e.printStackTrace();
 	    }
+		//condition to decrement table 
+		if(service_center_id.contains("S")) 
+		{
+		try {
+		
+			stmt = DBBuilder.getConnection().createStatement();
+		    rs = stmt.executeQuery(
+					"UPDATE HAS_PARTS SET CURRENT_QUANTITY=(CURRENT_QUANTITY-"+quantity+")"
+					+" WHERE PART_ID = "+part_id+" AND SERVICE_CENTER_ID = '"+service_center_id+"'");
+		}
+	catch(Throwable e) {
+        e.printStackTrace();}
+		
+		
+		}
+		
+		
 	}
 	
 	public static void delete(int order_id) {
