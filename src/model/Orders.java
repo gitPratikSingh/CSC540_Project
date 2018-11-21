@@ -202,13 +202,19 @@ public static void generateNotif(Timestamp curTime){
 				status = rs.getString("status");
 				order_id = rs.getInt("order_id");
 				service_center_id = rs.getString("service_center_id");
-				Timestamp ts = Timestamp.valueOf(status.split(",")[2]);
 				
-				if(ts.before(curTime)){
-					// delayed orders
+				try{
+					Timestamp ts = Timestamp.valueOf(status.split(",")[2]);
+				
+					if(ts.before(curTime)){
+						// delayed orders
+						Orders.update(order_id, "delayed");
+						Notification.create(service_center_id, "The order with ID "+order_id+" was delayed!");
+						
+					}
+				}catch(Exception e){
 					Orders.update(order_id, "delayed");
 					Notification.create(service_center_id, "The order with ID "+order_id+" was delayed!");
-					
 				}
 				
 			}
