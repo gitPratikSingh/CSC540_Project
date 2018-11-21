@@ -62,7 +62,7 @@ public class ManagerController {
 		switch (n)
 		{
 		case 1:
-			viewProfile();
+			viewProfilenew();
 			break;	
 		case 2:
 			viewCustomerProfile();
@@ -116,7 +116,69 @@ public class ManagerController {
 	
 	}
 	
-	//public static void viewProfile()
+	public static void viewProfilenew() {
+		String query1 = "SELECT EMPLOYEE.EMPLOYEE_ID, USERS.EMAIL, USERS.NAME, USERS.ADDRESS, USERS.PHONE, EMPLOYEE.START_DATE, EMPLOYEE.MONTHLY_PAY, EMPLOYEE.HOURLY_PAY,has_manager.service_center_id,EMPLOYEE.role"
+				+"			FROM EMPLOYEE INNER JOIN HAS_MANAGER" 
+				+"			ON EMPLOYEE.EMPLOYEE_ID = HAS_MANAGER.EMPLOYEE_ID AND EMPLOYEE.EMPLOYEE_ID = '"+ManagerEmployeeId+"'"
+				+"			INNER JOIN USERS ON USERS.EMAIL = EMPLOYEE.EMAIL  AND EMPLOYEE.EMPLOYEE_ID ='"+ManagerEmployeeId+"'";
+			
+			
+			
+				Statement stmt;
+				String employee_id = "";
+				try {
+					stmt = DBBuilder.getConnection().createStatement();
+					ResultSet rs = stmt.executeQuery(query1);
+									
+					while (rs.next()) {
+					   employee_id = rs.getString("EMPLOYEE_ID");
+					   String email = rs.getString("EMAIL");
+					   String name = rs.getString("NAME");
+					   String adr = rs.getString("ADDRESS");
+					   String phn = rs.getString("PHONE");
+					   String strdate = rs.getString("START_DATE");
+					   String Monthly_Pay = rs.getString("Monthly_Pay");
+					   String Hourly_pay = rs.getString("Hourly_pay");
+					   String sid = rs.getString("SERVICE_CENTER_ID");
+					   String role = rs.getString("ROLE");
+					   String compensation="";
+					   String freq="";
+					   if (Monthly_Pay != null && !Monthly_Pay.isEmpty()) {
+						   compensation = Monthly_Pay;
+						   freq = "Monthly";
+					   }
+					   else if (Hourly_pay != null && !Hourly_pay.isEmpty()) {
+						   compensation = Hourly_pay;
+						   freq = "Hourly";
+					   }
+				
+					   System.out.println("\n\n");
+					   System.out.println("Employee_id : "+employee_id);
+					   System.out.println("Name : "+name);
+					   System.out.println("Address : "+adr);
+					   System.out.println("Email Address: "+email);
+					   System.out.println("Phone : "+phn);
+					   System.out.println("Service Center : "+sid);
+					   System.out.println("Role : "+role);
+					   System.out.println("Start date : "+strdate);
+					   System.out.println("Compensation : "+compensation);
+					   System.out.println("Frequency : "+freq);
+					   System.out.println("\n\n");
+					}
+					
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+				
+			System.out.println("1. Go back");
+			Scanner reply = new Scanner(System.in);
+			String response = reply.nextLine();
+			if (response.equals("1")){
+				defaultPage();
+			}
+			
+		}
+	
 	
 	public static void viewCustomerProfile()
 	{
