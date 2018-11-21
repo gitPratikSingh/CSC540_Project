@@ -116,6 +116,9 @@ public class ManagerController {
 		}
 	
 	}
+	
+	//public static void viewProfile()
+	
 	public static void viewCustomerProfile()
 	{
 			String username;
@@ -591,7 +594,7 @@ public class ManagerController {
 				{System.out.println(" did not find any option to buy the parts ");
 			 return;}
 			/*Details such as cost, order date, etc. should be automatically calculated and
- 			the order status must be set as “pending”.After placing the
+ 			the order status must be set as â€œpendingâ€�.After placing the
 			order, show a confirmation message with the order ID*/
 			System.out.println("1.Place Order ");
 			System.out.println("2.Go back");

@@ -165,6 +165,7 @@ public class MainController {
 	    }
 		
 		ManagerController.setManager(SERVICE_CENTER_ID, username, ""+EMPLOYEE_ID);
+		ManagerController.defaultPage();
 		
 	}
 
