@@ -19,6 +19,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Scanner;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -100,12 +101,10 @@ public class CustomerController {
 	}
 	
 private void logoutMenu() {
-		// TODO Auto-generated method stub
-		
+		this.textGUI.startMenu();
 }
 
 private void invoicesMenu() {
-		// TODO Auto-generated method stub
 		
 }
 

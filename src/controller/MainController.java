@@ -129,12 +129,42 @@ public class MainController {
 	}
 
 	private void receptionistMenu(String username) {
-		// TODO Auto-generated method stub
+		new ReceptionistController(username).landing_page();
 		
 	}
 
 	private void managerMenu(String username) {
-		// TODO Auto-generated method stub
+		int EMPLOYEE_ID = 0;
+		String SERVICE_CENTER_ID = "";
+		String query = "SELECT * FROM EMPLOYEE WHERE email='"+username+"'";
+				
+		try {
+			Statement stmt = null;
+			stmt = DBBuilder.getConnection().createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			while(rs.next()){
+				EMPLOYEE_ID = rs.getInt("EMPLOYEE_ID");
+			}
+		} 
+    	catch(Throwable e) {
+	        e.printStackTrace();
+	    }
+		
+		query = "SELECT * FROM HAS_MANAGER WHERE EMPLOYEE_ID = "+EMPLOYEE_ID;
+		
+		try {
+			Statement stmt = null;
+			stmt = DBBuilder.getConnection().createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			while(rs.next()){
+				SERVICE_CENTER_ID = rs.getString("SERVICE_CENTER_ID");
+			}
+		} 
+    	catch(Throwable e) {
+	        e.printStackTrace();
+	    }
+		
+		ManagerController.setManager(SERVICE_CENTER_ID, username, ""+EMPLOYEE_ID);
 		
 	}
 
