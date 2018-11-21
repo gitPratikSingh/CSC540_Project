@@ -115,6 +115,9 @@ public class ReceptionistController {
 			case "9": System.out.println("8");
 					this.taskRecordDeliveries();
 					break;
+			case "10": System.out.println("8");
+					new MainController().startMenu();
+					break;
 			}
 			
 		}

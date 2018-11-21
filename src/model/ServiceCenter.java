@@ -578,7 +578,7 @@ public class ServiceCenter {
 			 }
 			
 			
-			String to_service_center_id = ManagerHelper.serviceCenter(part_id, from_service_center_id);
+			String to_service_center_id = ManagerHelper.serviceCenter(part_id, from_service_center_id, quantity);
 			if(!(to_service_center_id.equals(" ")))
 			{
 				distributor_id = to_service_center_id;
