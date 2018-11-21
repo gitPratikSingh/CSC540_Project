@@ -7,13 +7,15 @@ import java.sql.Connection;
 import model.Car;
 import model.HasCars;
 import model.HasParts;
+import model.Orders;
 import model.Parts;
-
 import model.ServiceCenter;
 import model.Users;
 import model.Employees;
 import model.Customers;
+
 import java.text.DateFormat;
+
 import model.Booked;
 import model.Appointment;
 import model.Timeslots;
@@ -28,6 +30,7 @@ import java.util.HashMap;
 import java.util.Scanner;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+
 
 
 import db.DBBuilder;
@@ -101,13 +104,80 @@ public class ReceptionistController {
 			case "6": System.out.println("6");
 					break;
 			case "7": System.out.println("7");
-			       this.generateinvoice();
+					this.generateinvoice();
+					break;
+			
+			case "8": System.out.println("8");
+					this.taskUpdateInventory();
+					break;
+			case "9": System.out.println("8");
+					this.taskRecordDeliveries();
 					break;
 			}
 			
 		}
 	}
 	
+	private void taskRecordDeliveries() {
+		
+		System.out.println("The task finished running successfully ");
+
+		System.out.println("1.Enter Order ID (CSV)");
+		System.out.println("2.Go Back");
+		Scanner reply = new Scanner(System.in);
+		String response = reply.nextLine();
+		while (true) {
+			switch (response) {
+				case "2": this.landing_page();
+				  			break;
+				case "1": System.out.print("\n Please neter the order Ids");
+							for(String orderId : reply.nextLine().split(",")){
+								Orders.update(Integer.parseInt(orderId),  "completed");
+							}
+							
+							/*
+							 * 	NOTIFICATION_ID
+							 *  SERVICE_CENTER_ID
+								MESSAGE
+								NOTIF_DATE
+							 */
+							
+							Orders.generateNotif(new Timestamp(new Date().getTime()));
+	  						break;
+				default: this.landing_page();
+							break;
+			}
+		}
+		
+		
+	}
+
+
+	private void taskUpdateInventory() {
+		//Run a task to update the counts of parts to be used that day, basically adjusted (decrementing them) to reflect the fact the parts will be removed and actually used that day.
+		try{
+			Thread.sleep(4000);
+		}catch(Exception e){
+			
+		}
+		
+		System.out.println("The task finished running successfully \n");
+		System.out.println("1.Go Back");
+		Scanner reply = new Scanner(System.in);
+		String response = reply.nextLine();
+		while (true) {
+		switch (response) {
+		case "1": this.landing_page();
+				  break;
+		default: this.landing_page();
+			break;
+			}
+		}
+		
+		
+	}
+
+
 	public void get_profile() {
 		System.out.println("1.View Profile");
 		System.out.println("2.Update Profile");
@@ -350,8 +420,9 @@ public class ReceptionistController {
 		
 	private ArrayList<String> get_BSS_for_repair(String repair, String model, String make) {
 		String query = "select Basic_services.service_name from Basic_services"
-		+"join Repairs on Basic_service.BASIC_SERVICE_ID = repairs.BASIC_SERVICE_ID"
+		+" join Repairs on Basic_services.BASIC_SERVICE_ID = repairs.BASIC_SERVICE_ID"
 		+" where model='"+model+"' AND make='"+make+"' AND repair_name='"+repair+"'";
+		System.out.println(query);
 		ArrayList<String> bss = new ArrayList<String>();
 		Statement stmt;
 		try {
@@ -369,15 +440,17 @@ public class ReceptionistController {
 	
 	
 	
-	private ArrayList<String> get_BSS(String Service_type, String model, String make) {
+	private ArrayList<String> get_BSS(String Service_type, String make, String model) {
 		String query = "select service_name from Basic_services"
 		+" where model='"+model+"' AND make='"+make+"' AND service_type='"+Service_type+"'";
+		//System.out.println("Inside get_BSS");
+		//System.out.println(query);
 		ArrayList<String> bss = new ArrayList<String>();
 		Statement stmt;
 		try {
 			stmt = DBBuilder.getConnection().createStatement();
 			ResultSet rs = stmt.executeQuery(query);
-			
+			//System.out.println("Inside try of get_BSS");
 		    while (rs.next()) {
 		    	bss.add(rs.getString("SERVICE_NAME"));
 		    	}
@@ -390,7 +463,9 @@ public class ReceptionistController {
 	
 	private HashMap<String,String> get_parts_details(String part,String make,String model) {
 		
-		String query= "select unit_price,warranty from parts where part_name = '"+part+"' and make = '"+make+"' and model = '"+model+"'";
+		String query= "select unit_price,warranty from parts where part_name = '"+part+"' and make = '"+make+"'";
+		//System.out.println("Inside get_parts_details");
+		//System.out.println(query);
 		Statement stmt;
 		String unit_price = "";
 		String warranty = "";
@@ -418,8 +493,10 @@ public class ReceptionistController {
 	
 	
 	private HashMap<String,String> get_Bss_details(String item,String make,String model) {
-		String query = "select charge, time , part_name , quantity from Basic_service" + 
+		String query = "select charge, time , part_name , quantity from Basic_services " + 
 				"where service_name = '"+item+"' AND make = '"+make+"' AND model = '"+model+"'";
+		//System.out.println("Inside get_BSS_details");
+		//System.out.println(query);
 		Statement stmt;
 		String charge = "";
 		String time = "";
@@ -471,6 +548,7 @@ public class ReceptionistController {
 		System.out.println("Enter customer email address");
 		String email = scanner.nextLine();
 		String customer_id = getcustomerid(email);
+		System.out.println("customer_id :"+customer_id);
 		
 		
 		String query = "SELECT APPOINTMENT.appointment_id, BOOKED.license_plate_number, car.make, car.model,APPOINTMENT.service_type, USERS.name as MechanicName, "
@@ -480,13 +558,15 @@ public class ReceptionistController {
 				+ "		LEFT JOIN USERS ON EMPLOYEE.email = USERS.email "
 				+ "     JOIN CAR ON BOOKED.license_plate_number = CAR.license_plate_number"
 				+ "		JOIN TIMESLOTS ON TIMESLOTS.service_center_id = BOOKED.service_center_id AND TIMESLOTS.start_time = APPOINTMENT.start_time	"
-				+ "		WHERE customer_id = " + customer_id + "and APPOINTMENT.status = completed" ; 
+				+ "		WHERE customer_id = " + customer_id + " and APPOINTMENT.status = 'completed'" ; 
+		
+		//System.out.println(query);
 		
 		Statement stmt;
 		try {
 			stmt = DBBuilder.getConnection().createStatement();
 			ResultSet rs = stmt.executeQuery(query);
-			
+			System.out.println("Query sent");
 		    while (rs.next()) {
 		    	HashMap<String,String> Labour_charge = new HashMap<String,String>();
 		    	HashMap<String,String> Part_charge = new HashMap<String,String>();
@@ -506,6 +586,8 @@ public class ReceptionistController {
 		    	String service_start_time = rs.getString("START_TIME");
 		    	String service_end_time = rs.getString("END_TIME");
 		    	String service_status = rs.getString("STATUS");
+		    	//System.out.println("make: "+make);
+		    	//System.out.println("model: "+model);
 		    	if (service_type.equals("A") || service_type.equals("B") || service_type.equals("C")) {
 		    	switch(service_type) {
 		    	case "C": BSS_LIST.addAll(get_BSS("C",make,model));
@@ -516,13 +598,14 @@ public class ReceptionistController {
 		    	else {
 		    		BSS_LIST.addAll(get_BSS_for_repair(service_type,make,model));
 		    	}
+		    	System.out.println("BSS_LIST: "+BSS_LIST);
 		    	System.out.println("A.Service ID : "+service_id);
 		    	System.out.println("B.Service Start Date/Time : "+service_start_time);
 		    	System.out.println("C.Service End Date/Time : "+service_end_time);
 		    	System.out.println("D.Licence Plate : "+license_plate);
 		    	System.out.println("E.Service Type: "+service_type);
 		    	System.out.println("F.Mechanic Name: "+mechanic_name);
-		    	
+		    	//System.out.println("Getting other info");
 		    	for (String t: BSS_LIST) {
 		    		BSS_DETAILS = get_Bss_details(t,make,model);
 		    		String part_name = BSS_DETAILS.get("part_name");
@@ -531,9 +614,14 @@ public class ReceptionistController {
 		            Float service_charge = Float.parseFloat(BSS_DETAILS.get("charge")) * (Float.parseFloat(BSS_DETAILS.get("time")))/60 ;
 		    		Labour_charge.put(t,(""+service_charge));
 		    		Labour_hours.put(t,(Float.parseFloat(BSS_DETAILS.get("time"))/60));
-		    		Float part_charges = Float.parseFloat(BSS_DETAILS.get("quanity")) * Float.parseFloat(PART_DETAILS.get("unit_price"));
+		    		//System.out.println("BSS_DETAILS- quantity : "+BSS_DETAILS.get("quantity"));
+		    		//System.out.println("PART_DETAILS - UNITPRICE :"+PART_DETAILS.get("unit_price"));
+		    		Float part_charges = Float.parseFloat(BSS_DETAILS.get("quantity")) * Float.parseFloat(PART_DETAILS.get("unit_price"));
 		    		Part_charge.put(t,(""+part_charges));
-		    		int warranty = Integer.parseInt(PART_DETAILS.get("warranty"));
+		    		//System.out.println("Part-details hashmap:"+PART_DETAILS);
+		    		String temp = PART_DETAILS.get("warranty");
+		    		int warranty;
+		    		warranty = (temp == null)? 0:Integer.parseInt(temp);
 		    		Warranty.put(t,(""+warranty));
 		    		TOTAL_COST.put(t, (service_charge + part_charges));	
 		    	}
@@ -562,6 +650,13 @@ public class ReceptionistController {
 		    		total_cost = total_cost + getdiagfee(service_type);
 		    	}
 		    	System.out.println("J.Total Service Cost: "+total_cost);
+		    	System.out.println("\n\n");
+		    	
+		    	System.out.println("1.Go Back");
+		    	String response = scanner.nextLine();
+		    	switch(response) {
+		    	case "1":this.landing_page();
+		    	}
 		    }
 		    	
 		} catch (SQLException e) {
