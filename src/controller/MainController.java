@@ -63,8 +63,12 @@ public class MainController {
 	}
 
 	private int checkNumericalInput(int startNum, int endNum) {
-		
-		String input = scanner.nextLine();
+		String input = "";
+		try{
+		input = scanner.nextLine();
+		}catch(Exception e){
+			
+		}
 		try {
 			int inputNum = Integer.parseInt(input);
 			if (inputNum >= startNum && inputNum <= endNum) {

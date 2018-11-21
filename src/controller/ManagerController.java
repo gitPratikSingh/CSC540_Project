@@ -105,7 +105,6 @@ public class ManagerController {
 		case 12:
 			System.out.println("Signing off");
 			//close rea 
-			reader.close();
 			new MainController().startMenu();
 			return;
 		default:
