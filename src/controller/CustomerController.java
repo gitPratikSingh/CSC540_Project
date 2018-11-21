@@ -511,10 +511,10 @@ private void scheduleRepairType(String repairName, String lplate, int mileage, S
 	
 	switch (checkNumericalInput(1, 2)) {
 	case 1:
-		scheduleTheRepairDate(lplate, Timestamps[0], Timestamps[1], mname);
+		scheduleTheRepairDate(lplate, Timestamps[0], Timestamps[1], mname, repairName);
 		break;
 	case 2:
-		scheduleTheRepairDate(lplate, Timestamps[2], Timestamps[3],  mname);
+		scheduleTheRepairDate(lplate, Timestamps[2], Timestamps[3],  mname, repairName);
 		break;
 	case -1:
 		scheduleRepairType(lplate, repairName, mileage,  mname);
@@ -525,12 +525,12 @@ private void scheduleRepairType(String repairName, String lplate, int mileage, S
 	
 }
 
-private void scheduleTheRepairDate(String lplate, Timestamp start_time,Timestamp end_time, String mname) {
+private void scheduleTheRepairDate(String lplate, Timestamp start_time,Timestamp end_time, String mname, String repairName) {
 	String city = Customers.getCity(this.username);
 	String service_center = ServiceCenter.findByCity(city);
 	
-	Timeslots.create(service_center, start_time, end_time, "repair");
-	int app_id = Appointment.create("pending", start_time, "repair", mname);
+	Timeslots.create(service_center, start_time, end_time, repairName);
+	int app_id = Appointment.create("pending", start_time, repairName, mname);
 	Booked.create(customerId, service_center, app_id, lplate);
 	
 	// remove the parts from the inventory
